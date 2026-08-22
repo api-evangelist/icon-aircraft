@@ -1,0 +1,187 @@
+generated: '2026-08-22'
+method: derived
+source: >-
+  openapi/icon-aircraft-content-api-openapi.yml and openapi/icon-aircraft-store-api-openapi.yml
+  ($ref graph plus id-reference fields), corroborated against live response bodies probed
+  2026-08-22.
+summary: >-
+  Two disjoint entity graphs on two disjoint hosts. There is no join between them — no shared
+  identifier, no cross-reference, no product record on the corporate site and no editorial content
+  on the store. Anyone integrating both is stitching them by hand on title or slug.
+domains:
+- name: Content
+  surface: ICON Aircraft Content API
+  base: https://www.iconaircraft.com/wp-json
+  id_style: unsigned integers, site-scoped, no prefix
+  addressable_by: numeric id (canonical) and slug (via ?slug= filter)
+  entities:
+  - name: Post
+    schema: Post
+    collection: /wp/v2/posts
+    observed_count: 159
+    description: A news or press item.
+  - name: Page
+    schema: Page
+    collection: /wp/v2/pages
+    observed_count: 94
+    description: A marketing, product, policy or landing page. Hierarchical.
+  - name: MediaItem
+    schema: MediaItem
+    collection: /wp/v2/media
+    observed_count: 1709
+    description: An uploaded asset with generated size renditions.
+  - name: Term
+    schema: Term
+    collection: /wp/v2/categories and /wp/v2/tags
+    observed_count: 43
+    description: A taxonomy term. 5 categories and 38 tags share one schema.
+  - name: ContentType
+    schema: ContentType
+    collection: /wp/v2/types
+    description: >-
+      Self-describing registry of content types. ICON registers one site-specific type, `work`,
+      which is REST-visible but held 0 published entries when probed.
+  - name: Taxonomy
+    schema: Taxonomy
+    collection: /wp/v2/taxonomies
+  - name: SearchResult
+    schema: SearchResult
+    collection: /wp/v2/search
+    observed_count: 242
+    description: A projection, not an entity — a lightweight stub pointing at a Post or Page.
+  relationships:
+  - from: Post
+    to: Term
+    type: has_many
+    via: categories[]
+    note: Array of category term ids.
+  - from: Post
+    to: Term
+    type: has_many
+    via: tags[]
+  - from: Post
+    to: MediaItem
+    type: has_one
+    via: featured_media
+    note: 0 means no featured image.
+  - from: Page
+    to: Page
+    type: belongs_to
+    via: parent
+    note: Self-referential hierarchy; 0 is a root page.
+  - from: Term
+    to: Term
+    type: belongs_to
+    via: parent
+    note: Categories are hierarchical; tags are flat and always report parent 0.
+  - from: SearchResult
+    to: Post
+    type: belongs_to
+    via: id + subtype
+  excluded:
+    entity: User
+    reason: >-
+      /wp/v2/users answers anonymously with 8 identifiable author records. The relationship
+      Post.author -> User is real and is named in the Post schema as a bare integer, but the entity
+      is deliberately not modelled here and no record is reproduced. See the anonymous-author-records
+      finding in authentication/icon-aircraft-authentication.yml.
+- name: Commerce
+  surface: Shop ICON Storefront API and UCP/MCP
+  base: https://store.iconaircraft.com
+  id_style: >-
+    Numeric Shopify ids on the JSON surface; Shopify global ids of the form
+    gid://shopify/{Type}/{id} on the UCP/MCP surface. The two are not interchangeable in a request.
+  addressable_by: storefront handle (slug) on the JSON surface, identifier on the MCP surface
+  entities:
+  - name: StoreMeta
+    schema: StoreMeta
+    collection: /meta.json
+    description: >-
+      Singleton. Merchant identity and commerce settings — the record that establishes the store
+      belongs to ICON Aircraft.
+  - name: Product
+    schema: Product
+    collection: /products.json
+    observed_count: 43
+  - name: Variant
+    schema: Variant
+    description: A purchasable SKU. Always embedded in its Product; never independently addressable.
+  - name: Image
+    schema: Image
+  - name: Option
+    schema: Option
+    description: A named axis of variation (size, color) whose values index Variant.option1..3.
+  - name: Collection
+    schema: Collection
+    collection: /collections.json
+    observed_count: 13
+  - name: Cart
+    schema: Cart
+    collection: /cart.js
+    description: Session-bound on the JSON surface; id-addressable on the MCP surface.
+  - name: Checkout
+    surface: mcp
+    description: >-
+      MCP-only. No schema in either OpenAPI; its shape lives in the live tool inputSchemas at
+      mcp/icon-aircraft-ucp-mcp-tools.json.
+  - name: Order
+    surface: mcp
+    description: MCP-only, buyer-scoped, read-only via get_order.
+  relationships:
+  - from: Product
+    to: Variant
+    type: has_many
+    via: variants[]
+    note: Embedded array; each variant carries product_id back.
+  - from: Variant
+    to: Product
+    type: belongs_to
+    via: product_id
+  - from: Product
+    to: Image
+    type: has_many
+    via: images[]
+  - from: Variant
+    to: Image
+    type: has_one
+    via: featured_image
+    note: Nullable; also reachable from Image.variant_ids[].
+  - from: Image
+    to: Variant
+    type: has_many
+    via: variant_ids[]
+  - from: Product
+    to: Option
+    type: has_many
+    via: options[]
+    note: >-
+      Positional coupling — options[0].values indexes Variant.option1, options[1] indexes option2,
+      and so on. There is no id linking them.
+  - from: Collection
+    to: Product
+    type: has_many
+    via: /collections/{handle}/products.json
+    note: >-
+      Many-to-many in practice; a product appears in several collections. The join is not
+      represented as a field on either record, only as a route.
+  - from: Cart
+    to: Variant
+    type: has_many
+    via: items[].variant_id
+  - from: Checkout
+    to: Cart
+    type: belongs_to
+    via: MCP tool arguments
+    note: MCP-only relationship; not visible on the JSON surface.
+  - from: Order
+    to: Checkout
+    type: belongs_to
+    via: complete_checkout return value
+cross_domain:
+  joins: []
+  note: >-
+    None. The content graph and the commerce graph share no key. A Post about the A5 and a Product
+    in the store carry no reference to each other, and the corporate site has no product entity at
+    all — aircraft configuration and pricing live in prose on /how-to-buy/ and /a5/, not in any API.
+    That is the largest data-model gap in this profile: the thing ICON Aircraft actually sells is
+    the one thing with no machine-readable representation.

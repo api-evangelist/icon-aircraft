@@ -1,0 +1,54 @@
+generated: '2026-08-22'
+method: probed
+source: well-known/icon-aircraft-store-oauth-authorization-server.json
+docs: https://store.iconaircraft.com/.well-known/oauth-authorization-server
+summary: >-
+  ICON Aircraft publishes no OAuth scope reference of its own. The only OAuth surface on any of its
+  hosts is the Shopify customer-account authorization server advertised by the Shop ICON storefront
+  and named as the authorization server for the UCP/MCP endpoint. The four scopes below are read
+  verbatim from that server's own RFC 8414 metadata document, probed anonymously on 2026-08-22.
+  Nothing is inferred, and none of them grant access to ICON Aircraft's own data beyond a shopper's
+  own account. Neither OpenAPI in this repository declares an oauth2 securityScheme, because every
+  operation described in them answers without a token.
+authorization_server: https://shopify.com/authentication/376732
+authorization_endpoint: https://shopify.com/authentication/376732/oauth/authorize
+token_endpoint: https://shopify.com/authentication/376732/oauth/token
+protected_resources:
+- https://store.iconaircraft.com
+- https://store.iconaircraft.com/api/ucp/mcp
+flows:
+- authorization_code
+- refresh_token
+- urn:ietf:params:oauth:grant-type:jwt-bearer
+pkce:
+- S256
+scope_count: 4
+scopes:
+- name: openid
+  description: Standard OpenID Connect scope requesting an ID token for the signed-in shopper.
+  category: identity
+  grants_access_to_icon_data: false
+- name: email
+  description: Releases the shopper's email address as an OIDC claim.
+  category: identity
+  grants_access_to_icon_data: false
+- name: customer-account-api:full
+  description: >-
+    Full access to the Shopify Customer Account API for the authenticated shopper — their own
+    orders, addresses and payment methods on the Shop ICON store.
+  category: buyer
+  grants_access_to_icon_data: false
+- name: customer-account-mcp-api:full
+  description: >-
+    Full access to the Shopify customer-account MCP API for the authenticated shopper. This is the
+    scope an agent would present on buyer-scoped UCP tools such as get_order; tools/list and the
+    catalog tools do not require it.
+  category: buyer
+  grants_access_to_icon_data: false
+notes:
+- >-
+  These are platform scopes defined by Shopify, exposed under ICON Aircraft's storefront domain and
+  bound to ICON's merchant id 376732. ICON did not author them and does not extend them.
+- >-
+  There is no scope, on any server, that grants a developer access to ICON Aircraft product,
+  aircraft, order or service data. The company operates no such API.

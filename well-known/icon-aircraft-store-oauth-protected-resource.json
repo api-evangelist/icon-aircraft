@@ -1,0 +1,9 @@
+{
+  "resource": "https://store.iconaircraft.com",
+  "authorization_servers": [
+    "https://shopify.com/authentication/376732"
+  ],
+  "bearer_methods_supported": [
+    "header"
+  ]
+}

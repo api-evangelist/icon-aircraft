@@ -1,0 +1,48 @@
+generated: '2026-08-22'
+method: probed
+source: >-
+  https://store.iconaircraft.com/agents.md and https://store.iconaircraft.com/robots.txt for the
+  published statement; live response-header inspection on every surface, 2026-08-22.
+limit_count: 0
+summary: >-
+  No numeric rate limit is published for any ICON Aircraft surface, and no rate-limit response
+  headers were observed on any of them. One qualitative limit IS published: the store's own agent
+  instructions state that the UCP/MCP endpoint is rate-limited per IP and that agents must back off
+  on 429. That is a real runtime signal — a status code an agent can act on — so it is recorded,
+  but there is no number attached to it and limit_count stays 0 rather than being inflated.
+limits: []
+signals:
+- surface: Shop ICON UCP/MCP Server
+  endpoint: https://store.iconaircraft.com/api/ucp/mcp
+  scope: per-IP
+  window: not published
+  limit: not published
+  burst: not published
+  status_on_exhaustion: 429
+  retry_after_header: not observed
+  rate_limit_headers: []
+  published: true
+  source: https://store.iconaircraft.com/agents.md
+  quote: 'Respect rate limits. The MCP endpoint is rate-limited per IP. Back off on 429 responses.'
+  agent_note: >-
+    An agent can only implement blind exponential backoff here. There is no RateLimit-* header, no
+    Retry-After, and no published quota, so remaining budget cannot be read before exhaustion.
+- surface: ICON Aircraft Content API
+  endpoint: https://www.iconaircraft.com/wp-json
+  published: false
+  rate_limit_headers: []
+  observed: >-
+    No RateLimit-* or X-RateLimit-* headers on any response. Reads are served from Fastly with
+    cache-control public, max-age=604800 and X-Cache HIT, so repeated collection reads are absorbed
+    at the edge and are unlikely to reach the Pantheon origin.
+- surface: Shop ICON Storefront API
+  endpoint: https://store.iconaircraft.com
+  published: false
+  rate_limit_headers: []
+  observed: >-
+    No rate-limit headers. Shopify applies edge throttling to storefront JSON but publishes no
+    limit for it, and none was hit during profiling. The `shopify-complexity-score` header seen on
+    HTML responses is a theme-rendering metric, not a request budget.
+note: >-
+  Honest zero. Nothing was throttled during this pass; no limit was inferred from that, because
+  absence of a 429 is not evidence of a limit's value.

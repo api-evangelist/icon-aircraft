@@ -1,0 +1,82 @@
+generated: '2026-08-22'
+method: probed
+source: >-
+  Live probes of every surface plus a search of www.iconaircraft.com for a versioning, deprecation,
+  SLA, status or changelog page, 2026-08-22.
+summary: >-
+  ICON Aircraft publishes no API lifecycle commitments of any kind — no versioning policy, no
+  deprecation policy, no Sunset or Deprecation headers, no SLA, no status page and no changelog.
+  That is the expected posture for an aircraft manufacturer with no developer program, and it is
+  recorded here as an honest absence rather than a gap the company failed to fill. The only
+  versioning visible anywhere in the profile belongs to the platforms underneath it.
+status_page:
+  present: false
+  url: null
+  note: >-
+    status.iconaircraft.com resolves only through a wildcard DNS record to the corporate site's
+    origin and presents a certificate that does not cover the name; no status service exists.
+    No third-party status page (Statuspage, Instatus, Better Stack) was found for either host.
+deprecation_policy:
+  present: false
+  url: null
+  headers_observed: []
+  note: >-
+    No Deprecation or Sunset header (RFC 8594) was returned on any probed response, and no policy
+    page exists. Nothing in either OpenAPI is marked deprecated.
+sla:
+  present: false
+  note: No uptime or support commitment is published for any surface.
+changelog:
+  present: false
+  url: null
+  note: >-
+    The corporate site publishes a news archive at https://www.iconaircraft.com/updates/ and an RSS
+    feed at /feed/, but these are company news, not an API changelog. No API changelog exists.
+versioning:
+- surface: ICON Aircraft Content API
+  scheme: namespace-in-path
+  current: wp/v2
+  owner: WordPress core
+  platform_version: WordPress 6.7.1
+  platform_version_source: 'meta name="generator" on https://www.iconaircraft.com/'
+  policy_published: false
+  note: >-
+    The version identifies the WordPress core REST namespace. ICON neither sets it nor commits to
+    it; an upstream WordPress upgrade changes this surface without any notice to consumers.
+- surface: Shop ICON Storefront API
+  scheme: unversioned
+  current: null
+  owner: Shopify
+  policy_published: false
+  note: >-
+    The .json storefront endpoints carry no version segment at all. Their shape is whatever the
+    Shopify platform currently returns.
+- surface: Shop ICON UCP/MCP Server
+  scheme: date-stamped protocol version
+  current: '2026-04-08'
+  supported:
+  - '2026-04-08'
+  - '2026-01-23'
+  owner: Universal Commerce Protocol / Shopify
+  policy_published: true
+  policy_url: https://store.iconaircraft.com/.well-known/ucp
+  note: >-
+    The only surface in the profile with a real version policy, and it is inherited rather than
+    authored. Two versions are served side by side, each with its own discovery document, which is
+    a genuine backward-compatibility commitment — but it is Shopify's commitment, not ICON's.
+deprecated_operations: []
+observed_freshness:
+- surface: ICON Aircraft Content API
+  signal: most recent published post
+  value: '2026-07-20'
+- surface: Shop ICON Storefront API
+  signal: most recent product updated_at
+  value: '2026-08-22'
+  note: The storefront is actively maintained — a product record was updated the day it was probed.
+corporate_context:
+  note: >-
+    ICON Aircraft entered Chapter 11 in 2024 and was acquired in 2025 by Shang Gong Group, making
+    it a sister company of Flight Design as of April 2025. Both web surfaces are live and current
+    under the new ownership, and the storefront now carries Flight Design branded merchandise.
+    Recorded because an ownership change is the usual cause of surface churn, not because any
+    surface is currently at risk.

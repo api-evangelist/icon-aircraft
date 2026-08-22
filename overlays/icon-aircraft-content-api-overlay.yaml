@@ -1,0 +1,74 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements — ICON Aircraft Content API
+  version: 1.0.0
+extends: ../openapi/icon-aircraft-content-api-openapi.yml
+x-provenance:
+  generated: '2026-08-22'
+  method: generated
+  source: >-
+    API Evangelist enrichment pass, 2026-08-22. Captures the annotations this pipeline added on top
+    of the derived spec so the spec itself stays a faithful description of the live surface.
+actions:
+  - target: $.info
+    update:
+      x-api-evangelist-profile: https://apis.io/providers/icon-aircraft/
+      x-derived-by: API Evangelist enrichment pipeline
+      x-derived-from: https://www.iconaircraft.com/wp-json/ (route index, HTTP 200, 233 routes)
+      x-provider-published-spec: false
+      x-platform: WordPress 6.7.1
+  - target: $.info
+    update:
+      x-surface-class: cms-content-api
+      x-surface-note: >-
+        This is a corporate website's CMS projection, not a product API. It was captured for
+        discovery because it is genuinely machine-readable and anonymously callable, not because
+        ICON Aircraft offers it to developers.
+  - target: $.paths['/wp/v2/posts'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+        item_count: 159
+      x-cache-policy: 'public, max-age=604800 (Fastly edge)'
+  - target: $.paths['/wp/v2/pages'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+        item_count: 94
+  - target: $.paths['/wp/v2/media'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+        item_count: 1709
+  - target: $.paths['/wp/v2/categories'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+        item_count: 5
+  - target: $.paths['/wp/v2/tags'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+        item_count: 38
+  - target: $.paths['/wp/v2/search'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+        item_count: 242
+  - target: $.components.schemas.Post.properties.author
+    update:
+      x-pii: true
+      x-pii-note: >-
+        Resolving this id against /wp/v2/users returns an identifiable person. That collection
+        answers anonymously and is deliberately excluded from this specification, from the agent
+        skills and from the MCP crosswalk.
+  - target: $.components.schemas.Error
+    update:
+      x-error-catalog: ../errors/icon-aircraft-problem-types.yml
+      x-rfc9457: false

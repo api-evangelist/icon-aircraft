@@ -1,0 +1,225 @@
+generated: '2026-08-22'
+method: probed
+source: >-
+  Live anonymous probes of https://www.iconaircraft.com/wp-json and https://store.iconaircraft.com
+  (headers and bodies), the tool manifest at mcp/icon-aircraft-ucp-mcp-tools.json, and the store's
+  published agent instructions at https://store.iconaircraft.com/agents.md — all 2026-08-22.
+summary: >-
+  Two unrelated platforms with two unrelated convention sets. The corporate content API follows
+  WordPress core conventions end to end: page/per_page pagination with X-WP-Total headers, a
+  `code`/`message`/`data.status` error envelope that is explicitly not RFC 9457, and no versioning
+  beyond the wp/v2 namespace. The storefront and its UCP/MCP endpoint follow Shopify and Universal
+  Commerce Protocol conventions: date-stamped protocol versions, minor-unit integer money paired
+  with a currency code, Shopify global ids, and a required idempotency key on the single operation
+  that takes payment.
+surfaces:
+- surface: ICON Aircraft Content API
+  base: https://www.iconaircraft.com/wp-json
+  auth_style: none for reads; WordPress application passwords (HTTP Basic) for writes
+  pagination:
+    style: page-number
+    params:
+    - page
+    - per_page
+    max_per_page: 100
+    response_headers:
+    - X-WP-Total
+    - X-WP-TotalPages
+    link_header: RFC 8288 Link with rel="next" and rel="prev"
+    exposed_via: access-control-expose-headers
+  field_shaping:
+    context: >-
+      The `context` parameter (view | embed | edit) selects the field set. Anonymous callers get
+      view and embed; edit returns 401 rest_forbidden.
+    embedding: >-
+      `_embed=true` inlines the author, featured media and terms into an `_embedded` member,
+      collapsing what would otherwise be three follow-up requests.
+    field_selection: >-
+      `_fields=` accepts a comma-separated allow list to trim the response, a WordPress core
+      convention.
+  versioning:
+    style: namespace-in-path
+    current: wp/v2
+    note: >-
+      The version is the WordPress core REST namespace, not an ICON Aircraft version. ICON does not
+      version this surface and publishes no deprecation policy for it.
+  error_envelope:
+    media_type: application/json
+    rfc9457: false
+    shape: '{ "code": "<machine_code>", "message": "<human>", "data": { "status": <http_status> } }'
+  rate_limit_signaling:
+    published: false
+    observed_headers: []
+    note: >-
+      No RateLimit-* or X-RateLimit-* headers were returned. Responses are served from Fastly with
+      cache-control public, max-age=604800 and X-Cache HIT, so cached reads are unlikely to reach
+      origin at all.
+  request_tracing:
+    headers:
+    - x-styx-req-id
+    - x-served-by
+    note: Pantheon origin and Fastly edge identifiers; not a documented correlation id.
+  caching:
+    cache_control: public, max-age=604800
+    note: One-week edge TTL on collection reads.
+- surface: Shop ICON Storefront API
+  base: https://store.iconaircraft.com
+  auth_style: none; session cart is bound to Shopify session cookies
+  pagination:
+    style: page-number
+    params:
+    - page
+    - limit
+    max_limit: 250
+    end_of_collection: An empty `products` array signals exhaustion; there is no total count field.
+  money:
+    representation: Decimal string in the store currency, for example "30.00"
+    currency_source: /meta.json `currency` and `money_format`
+    note: Deliberately different from the UCP/MCP representation on the same store — see below.
+  identifiers:
+    primary: numeric Shopify ids
+    addressable: storefront `handle` slugs, which are what the JSON endpoints route on
+  error_envelope:
+    media_type: text/html
+    note: >-
+      Unknown handles return the storefront's HTML 404 page, not a JSON error. There is no
+      machine-readable error contract on this surface.
+  rate_limit_signaling:
+    published: false
+    observed_headers:
+    - x-request-id
+    note: Shopify rate-limits storefront JSON at the edge but publishes no limit for it.
+- surface: Shop ICON UCP/MCP Server
+  base: https://store.iconaircraft.com/api/ucp/mcp
+  auth_style: none for tools/list and catalog tools; RFC 9728 protected-resource metadata advertised
+  protocol_versioning:
+    style: date-stamped protocol version
+    current: '2026-04-08'
+    supported:
+    - '2026-04-08'
+    - '2026-01-23'
+    discovery: /.well-known/ucp
+    note: >-
+      Two live versions are served side by side, each with its own discovery document. This is the
+      only versioned surface in the profile.
+  money:
+    representation: >-
+      Integer in ISO 4217 minor units paired with a currency code — {"amount": 2500, "currency":
+      "USD"} is $25.00.
+    stated_in: Every tool description that returns a price.
+    agent_note: >-
+      Agents must divide by 100 for two-decimal currencies before quoting a price to a buyer;
+      zero-decimal currencies such as JPY are already whole units.
+  identifiers:
+    style: Shopify global ids
+    example_form: gid://shopify/Checkout/{id}
+  agent_identity:
+    required_field: meta.ucp-agent.profile
+    type: URI
+    note: Required on all 13 tools. Identifies the agent; grants no privilege.
+  buyer_context:
+    fields:
+    - context.address_country
+    - context.currency
+    note: Published in agents.md as required for accurate pricing and availability.
+  rate_limit_signaling:
+    published: true
+    scope: per IP
+    status_on_exhaustion: 429
+    limit_value: not published
+    stated_in: https://store.iconaircraft.com/agents.md
+idempotency:
+  supported: true
+  scope: Shop ICON UCP/MCP Server only
+  mechanism:
+    field: meta.idempotency-key
+    location: tool arguments (not an HTTP header)
+    type: string
+    required: true
+  operations:
+  - complete_checkout
+  retention: not published
+  evidence: >-
+    Read directly from the live tools/list inputSchema — meta.required on complete_checkout is
+    ["ucp-agent", "idempotency-key"], and the field description is "An idempotency key for
+    completing the checkout."
+  note: >-
+    Exactly one operation carries it, and it is the one that takes payment. No other tool — cart
+    creation, checkout creation, checkout update — accepts an idempotency key, so an agent that
+    retries create_cart or create_checkout after a timeout can create a duplicate. Neither the
+    WordPress content API nor the storefront JSON surface has any write path, so idempotency is
+    not applicable there.
+dry_run_mode:
+  supported: false
+  grade: na
+  note: >-
+    No tool or endpoint accepts a simulate/preview/dry-run flag. create_checkout does return totals,
+    taxes and discounts before completion, which functions as a price preview, but it creates real
+    state rather than rehearsing it.
+reversibility:
+  grade: documented
+  note: >-
+    Graded `documented` rather than `verified` deliberately. Every write on this provider has a
+    named reversal operation, and the merchandise store publishes a hard 30-day return window — but
+    that window governs an out-of-band postal return, not any API operation. No published document
+    states a window inside which cancel_cart, cancel_checkout or a post-completion reversal will
+    succeed through the API, and this pipeline does not assert a window a provider has not written
+    down.
+  read_only_surfaces:
+  - surface: ICON Aircraft Content API
+    reversibility: na
+    reason: No anonymous write path exists, so there is nothing to reverse.
+  - surface: Shop ICON Storefront API
+    reversibility: na
+    reason: >-
+      Read-only JSON. /cart.js is a GET; the storefront JSON surface exposes no cart or checkout
+      mutation.
+  write_surfaces:
+  - surface: Shop ICON UCP/MCP Server
+    operations:
+    - action: create_cart
+      reversal: cancel_cart
+      window: null
+      window_source: null
+      note: Reversal operation exists and is published in the live tool manifest. No window stated.
+    - action: update_cart
+      reversal: update_cart
+      window: null
+      window_source: null
+      note: >-
+        Self-reversing — a cart update can be undone by another update while the cart is open.
+        No published statement of how long a cart stays open.
+    - action: create_checkout
+      reversal: cancel_checkout
+      window: null
+      window_source: null
+      note: >-
+        Reversal operation exists. The tool descriptions do not state whether cancel_checkout is
+        rejected once complete_checkout has succeeded, so an agent must treat completion as the
+        practical point of no return.
+    - action: update_checkout
+      reversal: update_checkout
+      window: null
+      window_source: null
+      note: Self-reversing while the checkout is open.
+    - action: complete_checkout
+      reversal: null
+      window: 30 days from the original purchase date
+      window_source: https://store.iconaircraft.com/policies/refund-policy
+      note: >-
+        THIS IS THE ONE AN AGENT MUST NOT GET WRONG. There is no API operation that reverses a
+        completed checkout — no refund, void or reverse tool exists in the manifest, and get_order
+        is read-only. The only reversal is out-of-band: the published refund policy states
+        "Unused merchandise may be returned for a full refund (excluding shipping charges) or
+        exchanged within 30 days of the original purchase date", requires the goods to be unused
+        and resalable, excludes shipping charges from the refund, and requires physically shipping
+        the item to ICON Aircraft Store Returns, 2141 ICON Way, Vacaville, CA 95688. An agent
+        cannot execute that. Completion of a checkout should therefore be treated as irreversible
+        by the agent and is exactly why the store's own agents.md requires contemporaneous human
+        approval before payment.
+  cross_links:
+    errors: errors/icon-aircraft-problem-types.yml
+    lifecycle: lifecycle/icon-aircraft-lifecycle.yml
+    authentication: authentication/icon-aircraft-authentication.yml
+    rate_limits: rate-limits/icon-aircraft-rate-limits.yml
+    mcp: mcp/icon-aircraft-mcp.yml

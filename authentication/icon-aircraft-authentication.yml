@@ -1,0 +1,95 @@
+generated: '2026-08-22'
+method: probed
+source: >-
+  Live anonymous probes of every surface in this profile plus the OAuth/OIDC discovery documents
+  saved under well-known/, 2026-08-22.
+summary: >-
+  Every surface ICON Aircraft exposes is readable with no credentials at all. Neither OpenAPI in
+  this repo declares a securitySchemes block, because none of the described operations require one:
+  the WordPress content API, the Shopify storefront JSON endpoints and the UCP/MCP tools/list
+  method all answered 200 anonymously. Credentials appear only at two edges — WordPress application
+  passwords for writes on the corporate site, and Shopify customer-account OAuth/OIDC for a buyer's
+  own orders — and neither is a developer-program credential. There is no API key, no client
+  registration, and no way for a developer to obtain a token for ICON's own data.
+surfaces:
+- surface: ICON Aircraft Content API
+  base: https://www.iconaircraft.com/wp-json
+  anonymous_read: true
+  scheme: none
+  evidence:
+    probe: GET https://www.iconaircraft.com/wp-json/wp/v2/posts?per_page=1
+    status: 200
+  write_path:
+    scheme: http
+    type: basic
+    name: WordPress application passwords
+    authorization_endpoint: https://www.iconaircraft.com/wp-admin/authorize-application.php
+    note: >-
+      Declared in the `authentication` member of the /wp-json/ index document. This is the WordPress
+      admin credential path, not a published developer credential — there is no self-service signup
+      and no application registration. Every write method described by WordPress core on these
+      routes is out of reach for a third party.
+  gated_contexts:
+  - request: GET /wp/v2/settings
+    status: 401
+    code: rest_forbidden
+    note: context=edit and site settings require an authenticated administrator.
+- surface: Shop ICON Storefront API
+  base: https://store.iconaircraft.com
+  anonymous_read: true
+  scheme: none
+  evidence:
+    probe: GET https://store.iconaircraft.com/products.json?limit=250
+    status: 200
+  note: >-
+    Session state on /cart.js is carried by Shopify session cookies (_shopify_essential, cart
+    token), not by a bearer credential. There is no storefront access token in this surface.
+- surface: Shop ICON UCP/MCP Server
+  base: https://store.iconaircraft.com/api/ucp/mcp
+  anonymous_read: true
+  scheme: none
+  evidence:
+    probe: POST /api/ucp/mcp {"jsonrpc":"2.0","id":1,"method":"tools/list"}
+    status: 200
+    note: Returned 13 tools with full inputSchemas without any Authorization header.
+  agent_identity:
+    mechanism: >-
+      Every tool requires a `meta.ucp-agent.profile` URI in its arguments. This identifies the
+      calling agent to the merchant but is not authentication — it is not verified against a
+      registered client and grants no privilege.
+  protected_resource_metadata:
+    document: well-known/icon-aircraft-store-oauth-protected-resource.json
+    resource: https://store.iconaircraft.com/api/ucp/mcp
+    authorization_servers:
+    - https://shopify.com/authentication/376732
+    bearer_methods_supported:
+    - header
+    rfc: RFC 9728
+    note: >-
+      The MCP endpoint advertises RFC 9728 protected-resource metadata even though tools/list
+      answered anonymously. Buyer-scoped operations (get_order, and payment on complete_checkout)
+      are where that authorization server is expected to be exercised.
+  authorization_server:
+    document: well-known/icon-aircraft-store-oauth-authorization-server.json
+    issuer: https://shopify.com/authentication/376732
+    rfc: RFC 8414
+  openid_connect:
+    document: well-known/icon-aircraft-store-openid-configuration.json
+    issuer: https://shopify.com/authentication/376732
+    note: >-
+      Shopify customer accounts. This authenticates a shopper to their own orders; it is not a
+      developer credential and issues no token for ICON Aircraft's own data.
+findings:
+- id: no-developer-credential
+  severity: informational
+  detail: >-
+    There is no path by which a developer can obtain a credential for an ICON Aircraft API. Nothing
+    is gated because nothing is offered; the anonymous surfaces are the whole surface.
+- id: anonymous-author-records
+  severity: low
+  detail: >-
+    GET /wp-json/wp/v2/users returns 8 identifiable author records anonymously — a WordPress core
+    default, not a misconfiguration unique to ICON. It is documented here as an exposure and is
+    deliberately excluded from the derived OpenAPI, the agent skills and the MCP crosswalk. No
+    person's record is reproduced anywhere in this repository. Providers who want it closed can
+    filter the `users` REST endpoint for unauthenticated callers.

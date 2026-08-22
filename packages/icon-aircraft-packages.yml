@@ -1,0 +1,38 @@
+generated: '2026-08-22'
+method: searched
+source: >-
+  Registry searches on npm, PyPI, RubyGems and crates.io for "iconaircraft" and "icon-aircraft",
+  plus a search for a GitHub organization, 2026-08-22.
+package_count: 0
+official_package_count: 0
+packages: []
+evidence:
+- registry: npm
+  query: https://registry.npmjs.org/-/v1/search?text=iconaircraft&size=5
+  status: 200
+  result: 0 packages
+- registry: pypi
+  query: https://pypi.org/pypi/iconaircraft/json
+  status: 404
+  result: no such project
+- registry: rubygems
+  query: https://rubygems.org/api/v1/gems/iconaircraft.json
+  status: 404
+  result: no such gem
+- registry: crates.io
+  query: https://crates.io/api/v1/crates?q=iconaircraft
+  status: 200
+  result: 0 crates
+- registry: github
+  query: https://github.com/iconaircraft
+  status: 404
+  result: no organization under that name
+note: >-
+  ICON Aircraft publishes no client libraries, no CLI and no source repositories. Nothing was found
+  on npm, PyPI, RubyGems, crates.io or GitHub under either spelling of the company name, and the
+  company's own site links to no SDK. This is consistent with the rest of the profile: there is no
+  developer program to write an SDK for. A consumer of either surface in this repository uses a
+  plain HTTP client — and for the UCP/MCP endpoint, any standard MCP client, no vendor package
+  required.
+  Recorded as a verified zero rather than an unchecked field: no `version:`/`published:` entries
+  appear below because there is no package whose currency could be measured.

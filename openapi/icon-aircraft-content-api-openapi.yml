@@ -1,0 +1,815 @@
+openapi: 3.1.0
+info:
+  title: ICON Aircraft Content API
+  version: wp/v2
+  description: >-
+    Anonymous, read-only access to the editorial and marketing content behind www.iconaircraft.com,
+    served by the WordPress core REST API (WordPress 6.7.1). ICON Aircraft publishes no developer
+    program and no product API; this surface is the machine-readable projection of its corporate
+    website — news posts, marketing and policy pages, the media library, and the category/tag
+    taxonomy — and is captured here for discovery purposes only.
+
+    Derived by API Evangelist from the live route index at https://www.iconaircraft.com/wp-json/
+    (HTTP 200, 233 routes, 10 namespaces) and from anonymous GET probes of each collection listed
+    below on 2026-08-22. Only routes that answered 200 without credentials are described. Write
+    methods exist on these routes but require a WordPress application password and are therefore
+    excluded. The /wp/v2/users collection also answers anonymously; it is deliberately NOT described
+    here because it returns identifiable author records.
+  contact:
+    name: ICON Aircraft
+    url: https://www.iconaircraft.com/company/contact/
+  license:
+    name: All rights reserved — ICON Aircraft
+    url: https://www.iconaircraft.com/terms-of-use/
+servers:
+  - url: https://www.iconaircraft.com/wp-json
+    description: Production WordPress REST API (Pantheon origin, Fastly edge)
+tags:
+  - name: Posts
+    description: ICON Aircraft news and press releases.
+  - name: Pages
+    description: Marketing, product, policy and landing pages.
+  - name: Media
+    description: The site media library — photography, video posters and documents.
+  - name: Taxonomy
+    description: Categories and tags applied to posts.
+  - name: Search
+    description: Cross-type site search.
+  - name: Discovery
+    description: Self-describing metadata about the content types this site exposes.
+paths:
+  /:
+    get:
+      operationId: getApiRoot
+      summary: Get the API discovery document
+      description: >-
+        Returns the WordPress REST API index — site name, description, URL, registered namespaces,
+        the full route table, and the supported authentication methods.
+      tags: [Discovery]
+      responses:
+        '200':
+          description: The API index document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRoot'
+  /wp/v2/posts:
+    get:
+      operationId: listPosts
+      summary: List news posts
+      description: >-
+        Lists published ICON Aircraft news posts, newest first. Verified live at 159 published
+        posts on 2026-08-22. Paginated via page/per_page; the total count and page count are
+        returned in the X-WP-Total and X-WP-TotalPages response headers.
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/order'
+        - $ref: '#/components/parameters/orderbyPost'
+        - $ref: '#/components/parameters/categories'
+        - $ref: '#/components/parameters/tags'
+        - $ref: '#/components/parameters/context'
+        - $ref: '#/components/parameters/embed'
+      responses:
+        '200':
+          description: A page of posts.
+          headers:
+            X-WP-Total:
+              $ref: '#/components/headers/XWPTotal'
+            X-WP-TotalPages:
+              $ref: '#/components/headers/XWPTotalPages'
+            Link:
+              $ref: '#/components/headers/Link'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/InvalidParam'
+  /wp/v2/posts/{id}:
+    get:
+      operationId: getPost
+      summary: Get a single news post
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/context'
+        - $ref: '#/components/parameters/embed'
+      responses:
+        '200':
+          description: The post.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /wp/v2/pages:
+    get:
+      operationId: listPages
+      summary: List site pages
+      description: >-
+        Lists published marketing, product, policy and landing pages. Verified live at 94 published
+        pages on 2026-08-22. Pages are hierarchical — use the parent field to walk the tree.
+      tags: [Pages]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/order'
+        - $ref: '#/components/parameters/context'
+        - $ref: '#/components/parameters/embed'
+      responses:
+        '200':
+          description: A page of pages.
+          headers:
+            X-WP-Total:
+              $ref: '#/components/headers/XWPTotal'
+            X-WP-TotalPages:
+              $ref: '#/components/headers/XWPTotalPages'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Page'
+        '400':
+          $ref: '#/components/responses/InvalidParam'
+  /wp/v2/pages/{id}:
+    get:
+      operationId: getPage
+      summary: Get a single page
+      tags: [Pages]
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/context'
+        - $ref: '#/components/parameters/embed'
+      responses:
+        '200':
+          description: The page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /wp/v2/media:
+    get:
+      operationId: listMedia
+      summary: List media library items
+      description: >-
+        Lists items in the site media library — ICON A5 photography, video posters, brochures and
+        other uploaded assets, each with its generated size renditions. Verified live at 1,709
+        items on 2026-08-22.
+      tags: [Media]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/mediaType'
+        - $ref: '#/components/parameters/context'
+      responses:
+        '200':
+          description: A page of media items.
+          headers:
+            X-WP-Total:
+              $ref: '#/components/headers/XWPTotal'
+            X-WP-TotalPages:
+              $ref: '#/components/headers/XWPTotalPages'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MediaItem'
+        '400':
+          $ref: '#/components/responses/InvalidParam'
+  /wp/v2/media/{id}:
+    get:
+      operationId: getMediaItem
+      summary: Get a single media item
+      tags: [Media]
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/context'
+      responses:
+        '200':
+          description: The media item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /wp/v2/categories:
+    get:
+      operationId: listCategories
+      summary: List post categories
+      description: >-
+        Lists the category taxonomy applied to posts. Verified live at 5 categories on 2026-08-22.
+      tags: [Taxonomy]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/hideEmpty'
+      responses:
+        '200':
+          description: A page of categories.
+          headers:
+            X-WP-Total:
+              $ref: '#/components/headers/XWPTotal'
+            X-WP-TotalPages:
+              $ref: '#/components/headers/XWPTotalPages'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Term'
+        '400':
+          $ref: '#/components/responses/InvalidParam'
+  /wp/v2/categories/{id}:
+    get:
+      operationId: getCategory
+      summary: Get a single category
+      tags: [Taxonomy]
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: The category term.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Term'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /wp/v2/tags:
+    get:
+      operationId: listTags
+      summary: List post tags
+      description: >-
+        Lists the tag taxonomy applied to posts. Verified live at 38 tags on 2026-08-22.
+      tags: [Taxonomy]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/hideEmpty'
+      responses:
+        '200':
+          description: A page of tags.
+          headers:
+            X-WP-Total:
+              $ref: '#/components/headers/XWPTotal'
+            X-WP-TotalPages:
+              $ref: '#/components/headers/XWPTotalPages'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Term'
+        '400':
+          $ref: '#/components/responses/InvalidParam'
+  /wp/v2/tags/{id}:
+    get:
+      operationId: getTag
+      summary: Get a single tag
+      tags: [Taxonomy]
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: The tag term.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Term'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /wp/v2/search:
+    get:
+      operationId: searchContent
+      summary: Search across content types
+      description: >-
+        Cross-type site search returning lightweight result stubs (id, title, url, type, subtype).
+        Verified live at 242 searchable items on 2026-08-22.
+      tags: [Search]
+      parameters:
+        - name: search
+          in: query
+          required: true
+          description: The search term.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+        - name: type
+          in: query
+          description: Limit results to a search-result type.
+          schema:
+            type: string
+            enum: [post, term, post-format]
+            default: post
+        - name: subtype
+          in: query
+          description: Limit results to one or more content subtypes (for example post or page).
+          schema:
+            type: string
+            default: any
+      responses:
+        '200':
+          description: A page of search results.
+          headers:
+            X-WP-Total:
+              $ref: '#/components/headers/XWPTotal'
+            X-WP-TotalPages:
+              $ref: '#/components/headers/XWPTotalPages'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResult'
+        '400':
+          $ref: '#/components/responses/InvalidParam'
+  /wp/v2/types:
+    get:
+      operationId: listTypes
+      summary: List registered content types
+      description: >-
+        Returns the content types this site registers and their REST base paths. ICON Aircraft
+        registers one site-specific type beyond WordPress core, `work`, which is REST-visible but
+        held 0 published entries when probed on 2026-08-22.
+      tags: [Discovery]
+      responses:
+        '200':
+          description: A map of type slug to type descriptor.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/ContentType'
+  /wp/v2/taxonomies:
+    get:
+      operationId: listTaxonomies
+      summary: List registered taxonomies
+      tags: [Discovery]
+      responses:
+        '200':
+          description: A map of taxonomy slug to taxonomy descriptor.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/Taxonomy'
+  /wp/v2/statuses:
+    get:
+      operationId: listStatuses
+      summary: List post statuses
+      tags: [Discovery]
+      responses:
+        '200':
+          description: A map of status slug to status descriptor.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    slug:
+                      type: string
+                    public:
+                      type: boolean
+                    queryable:
+                      type: boolean
+  /oembed/1.0/embed:
+    get:
+      operationId: getOEmbed
+      summary: Get an oEmbed representation of a URL on this site
+      tags: [Discovery]
+      parameters:
+        - name: url
+          in: query
+          required: true
+          description: The URL of the ICON Aircraft post or page to embed.
+          schema:
+            type: string
+            format: uri
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, xml]
+            default: json
+        - name: maxwidth
+          in: query
+          schema:
+            type: integer
+            default: 600
+      responses:
+        '200':
+          description: The oEmbed document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OEmbed'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  headers:
+    XWPTotal:
+      description: Total number of items in the collection matching the query.
+      schema:
+        type: integer
+    XWPTotalPages:
+      description: Total number of pages available for the query.
+      schema:
+        type: integer
+    Link:
+      description: RFC 8288 pagination links (rel="next" / rel="prev").
+      schema:
+        type: string
+  parameters:
+    page:
+      name: page
+      in: query
+      description: 1-indexed page of the collection to return.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    perPage:
+      name: per_page
+      in: query
+      description: Items per page. Maximum 100.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    search:
+      name: search
+      in: query
+      description: Limit results to those matching a string.
+      schema:
+        type: string
+    order:
+      name: order
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+    orderbyPost:
+      name: orderby
+      in: query
+      schema:
+        type: string
+        enum: [author, date, id, include, modified, parent, relevance, slug, title]
+        default: date
+    categories:
+      name: categories
+      in: query
+      description: Limit results to items assigned to the given category IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    tags:
+      name: tags
+      in: query
+      description: Limit results to items assigned to the given tag IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    hideEmpty:
+      name: hide_empty
+      in: query
+      description: Return only terms that are assigned to at least one item.
+      schema:
+        type: boolean
+        default: false
+    mediaType:
+      name: media_type
+      in: query
+      schema:
+        type: string
+        enum: [image, video, text, application, audio]
+    context:
+      name: context
+      in: query
+      description: >-
+        Scope of the response. Anonymous callers may only use `view` and `embed`; `edit` requires
+        authentication and returns 401 otherwise.
+      schema:
+        type: string
+        enum: [view, embed, edit]
+        default: view
+    embed:
+      name: _embed
+      in: query
+      description: Embed linked resources (author, terms, featured media) into the _embedded member.
+      schema:
+        type: boolean
+    id:
+      name: id
+      in: path
+      required: true
+      description: Unique numeric identifier for the object.
+      schema:
+        type: integer
+  responses:
+    NotFound:
+      description: No object exists with that identifier.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InvalidParam:
+      description: One or more query parameters failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: The requested context or resource requires authentication.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    RenderedText:
+      type: object
+      description: A WordPress rendered-text field.
+      properties:
+        rendered:
+          type: string
+          description: HTML rendering of the field.
+        protected:
+          type: boolean
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        date_gmt:
+          type: string
+          format: date-time
+        modified:
+          type: string
+          format: date-time
+        slug:
+          type: string
+        status:
+          type: string
+        type:
+          type: string
+        link:
+          type: string
+          format: uri
+        title:
+          $ref: '#/components/schemas/RenderedText'
+        content:
+          $ref: '#/components/schemas/RenderedText'
+        excerpt:
+          $ref: '#/components/schemas/RenderedText'
+        author:
+          type: integer
+          description: Numeric author id. Resolving it exposes an identifiable person; see the profile note.
+        featured_media:
+          type: integer
+        categories:
+          type: array
+          items:
+            type: integer
+        tags:
+          type: array
+          items:
+            type: integer
+        _links:
+          type: object
+          additionalProperties: true
+    Page:
+      type: object
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        modified:
+          type: string
+          format: date-time
+        slug:
+          type: string
+        status:
+          type: string
+        type:
+          type: string
+        link:
+          type: string
+          format: uri
+        title:
+          $ref: '#/components/schemas/RenderedText'
+        content:
+          $ref: '#/components/schemas/RenderedText'
+        excerpt:
+          $ref: '#/components/schemas/RenderedText'
+        parent:
+          type: integer
+        menu_order:
+          type: integer
+        template:
+          type: string
+        _links:
+          type: object
+          additionalProperties: true
+    MediaItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        slug:
+          type: string
+        link:
+          type: string
+          format: uri
+        title:
+          $ref: '#/components/schemas/RenderedText'
+        caption:
+          $ref: '#/components/schemas/RenderedText'
+        alt_text:
+          type: string
+        media_type:
+          type: string
+        mime_type:
+          type: string
+        source_url:
+          type: string
+          format: uri
+        media_details:
+          type: object
+          properties:
+            width:
+              type: integer
+            height:
+              type: integer
+            file:
+              type: string
+            sizes:
+              type: object
+              additionalProperties: true
+    Term:
+      type: object
+      properties:
+        id:
+          type: integer
+        count:
+          type: integer
+        description:
+          type: string
+        link:
+          type: string
+          format: uri
+        name:
+          type: string
+        slug:
+          type: string
+        taxonomy:
+          type: string
+        parent:
+          type: integer
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+        type:
+          type: string
+        subtype:
+          type: string
+        _links:
+          type: object
+          additionalProperties: true
+    ContentType:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        hierarchical:
+          type: boolean
+        has_archive:
+          oneOf:
+            - type: boolean
+            - type: string
+        rest_base:
+          type: string
+        taxonomies:
+          type: array
+          items:
+            type: string
+    Taxonomy:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        hierarchical:
+          type: boolean
+        rest_base:
+          type: string
+        types:
+          type: array
+          items:
+            type: string
+    OEmbed:
+      type: object
+      properties:
+        version:
+          type: string
+        provider_name:
+          type: string
+        provider_url:
+          type: string
+          format: uri
+        type:
+          type: string
+        title:
+          type: string
+        html:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+    ApiRoot:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+        home:
+          type: string
+          format: uri
+        namespaces:
+          type: array
+          items:
+            type: string
+        authentication:
+          type: object
+          additionalProperties: true
+        routes:
+          type: object
+          additionalProperties: true
+    Error:
+      type: object
+      description: >-
+        The WordPress REST error envelope. Not RFC 9457 — the media type is application/json and the
+        machine-readable code lives in `code`, not `type`.
+      properties:
+        code:
+          type: string
+          examples: [rest_post_invalid_id, rest_invalid_param, rest_forbidden]
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            status:
+              type: integer
+          additionalProperties: true

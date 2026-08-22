@@ -1,0 +1,112 @@
+generated: '2026-08-22'
+method: probed
+source: >-
+  Live anonymous error probes against https://www.iconaircraft.com/wp-json,
+  https://store.iconaircraft.com and https://store.iconaircraft.com/api/ucp/mcp, 2026-08-22.
+  Each entry below reproduces a response body actually returned during that probe.
+format: none
+rfc9457: false
+summary: >-
+  Three surfaces, three unrelated error contracts, none of them RFC 9457. The content API returns
+  the WordPress core envelope with a machine-readable `code`. The UCP/MCP endpoint returns JSON-RPC
+  2.0 errors with a nested UCP `data.code`. The storefront JSON surface has no error contract at
+  all — a missing handle returns an HTML 404 page under a JSON content-type header. No provider
+  documentation enumerates any of these; every code below was observed, not read from a reference.
+envelopes:
+- surface: ICON Aircraft Content API
+  media_type: application/json
+  shape: '{ "code": string, "message": string, "data": { "status": integer, ... } }'
+  machine_code_field: code
+  note: >-
+    On validation failures `data.params` and `data.details` carry a per-parameter breakdown with
+    its own nested `code`.
+- surface: Shop ICON UCP/MCP Server
+  media_type: application/json
+  shape: '{ "jsonrpc": "2.0", "id": <id>, "error": { "code": integer, "message": string, "data": { "code": string, "content": string, "continue_url": string } } }'
+  machine_code_field: error.data.code
+  note: >-
+    JSON-RPC transport code in `error.code` (-32001 for a UCP application error), UCP semantic code
+    in `error.data.code`. HTTP status is 422, not 200 — this endpoint does not tunnel JSON-RPC
+    errors through 200.
+- surface: Shop ICON Storefront API
+  media_type: application/json (header) with an HTML body
+  shape: none
+  machine_code_field: null
+  note: >-
+    A defect worth reporting to the provider: GET /products/{unknown-handle}.json returns HTTP 404
+    with content-type application/json and an HTML body. A client that trusts the content-type and
+    parses the body will throw.
+problem_types:
+- code: rest_post_invalid_id
+  surface: ICON Aircraft Content API
+  status: 404
+  title: Invalid post ID
+  observed_message: Invalid post ID.
+  observed_on: GET /wp/v2/posts/999999999
+  remediation: >-
+    The numeric id does not resolve to a published object. Enumerate via GET /wp/v2/posts and use
+    an id from the collection.
+- code: rest_no_route
+  surface: ICON Aircraft Content API
+  status: 404
+  title: No matching route
+  observed_message: No route was found matching the URL and request method.
+  observed_on: GET /wp/v2/nope
+  remediation: >-
+    The path or method is not registered. Read GET /wp-json/ for the live route table; it is
+    authoritative for this site and lists all 233 registered routes.
+- code: rest_invalid_param
+  surface: ICON Aircraft Content API
+  status: 400
+  title: Invalid parameter
+  observed_message: 'Invalid parameter(s): per_page'
+  observed_on: GET /wp/v2/posts?per_page=9999
+  detail_codes:
+  - rest_out_of_bounds
+  remediation: >-
+    Read data.details[param].message for the exact constraint. per_page must be between 1 and 100
+    inclusive; page must be at least 1.
+- code: rest_forbidden_context
+  surface: ICON Aircraft Content API
+  status: 401
+  title: Context requires authentication
+  observed_message: Sorry, you are not allowed to edit posts in this post type.
+  observed_on: GET /wp/v2/posts?context=edit
+  remediation: >-
+    Anonymous callers may only use context=view or context=embed. There is no public credential
+    that grants context=edit on this site.
+- code: rest_forbidden
+  surface: ICON Aircraft Content API
+  status: 401
+  title: Forbidden
+  observed_message: Sorry, you are not allowed to do that.
+  observed_on: GET /wp/v2/settings
+  remediation: Administrative resource. Not reachable without a WordPress application password.
+- code: invalid_profile_url
+  surface: Shop ICON UCP/MCP Server
+  status: 422
+  jsonrpc_code: -32001
+  title: UCP discovery failed
+  observed_message: 'UCP discovery failed / Unable to fetch agent profile: Missing profile uri'
+  observed_on: >-
+    POST /api/ucp/mcp with method tools/call and no meta.ucp-agent.profile — and, notably, also
+    with an entirely unknown method name.
+  remediation: >-
+    Supply meta.ucp-agent.profile as a fetchable URI on every tool call. The server resolves that
+    profile before it dispatches, which is why a malformed call fails discovery rather than
+    returning method-not-found.
+  agent_note: >-
+    This error masks method errors. An unknown method name returns the same invalid_profile_url
+    error as a missing profile, so an agent cannot distinguish "you called a tool that does not
+    exist" from "you did not identify yourself" until the profile is valid. tools/list is the
+    exception — it dispatches anonymously.
+gaps:
+- >-
+  No provider-published error reference exists for any of the three surfaces. The WordPress codes
+  are documented by WordPress core, the JSON-RPC codes by the MCP specification, and the UCP codes
+  by ucp.dev — none by ICON Aircraft.
+- >-
+  Only the anonymous error space could be enumerated. Errors on the write and buyer-scoped tools
+  (create_checkout, complete_checkout, get_order) require a valid agent profile and a buyer session
+  and were deliberately not exercised — this pipeline does not create carts, checkouts or orders on
+  a live merchant.

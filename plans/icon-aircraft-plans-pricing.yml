@@ -1,0 +1,37 @@
+generated: '2026-08-22'
+method: searched
+source: >-
+  https://www.iconaircraft.com/how-to-buy/ and https://store.iconaircraft.com/products.json,
+  fetched 2026-08-22.
+plan_count: 0
+plans: []
+summary: >-
+  ICON Aircraft publishes no API plans, tiers, quotas or developer pricing, because it sells no API
+  access. Every machine-readable surface in this profile is free and anonymous: the WordPress
+  content API, the storefront JSON endpoints and the UCP/MCP endpoint all answered 200 with no
+  credential, no signup and no metering. plan_count is 0 as a measured fact, not an omission.
+access_model:
+  pricing: none
+  onboarding: none
+  signup_required: false
+  trial: false
+  public: true
+  label: Free, anonymous, read-mostly. No developer plan exists to buy.
+commercial_pricing:
+  note: >-
+    The company does publish commercial pricing, but for physical goods rather than API access.
+    Recorded here so the distinction is explicit and nobody reads a $0 API price as a $0 company.
+  surfaces:
+  - name: ICON A5 aircraft
+    url: https://www.iconaircraft.com/how-to-buy/
+    status: 200
+    model: >-
+      Configured purchase through a deposit and a sales process, with a certified pre-owned catalog
+      and a service-provider network. Prices are quoted through the sales path rather than listed
+      as a machine-readable tier, so no price is asserted here.
+  - name: Shop ICON merchandise
+    url: https://store.iconaircraft.com/products.json
+    status: 200
+    model: >-
+      43 published products with per-variant prices in USD, machine-readable and anonymous. This is
+      product pricing exposed through the storefront API, not a plan for the API itself.

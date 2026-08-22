@@ -1,0 +1,115 @@
+generated: '2026-08-22'
+method: derived
+source: >-
+  mcp/icon-aircraft-ucp-mcp-tools.json (live tools/list, 13 tools) bound against
+  openapi/icon-aircraft-store-api-openapi.yml (7 probed storefront JSON operations).
+note: >-
+  Both surfaces were read live and anonymously, so every binding below is name-and-schema
+  verifiable rather than guessed. The two surfaces are deliberately non-overlapping at the write
+  edge: Shopify projects reads to the storefront JSON endpoints and reserves every cart, checkout
+  and order mutation for the UCP/MCP endpoint, where the buyer-approval invariant can be enforced.
+  There is no crosswalk row for the WordPress content API — it is a different host, a different
+  product surface, and has no MCP projection at all.
+surfaces:
+  openapi:
+    - file: openapi/icon-aircraft-store-api-openapi.yml
+      base: https://store.iconaircraft.com
+      gated: false
+    - file: openapi/icon-aircraft-content-api-openapi.yml
+      base: https://www.iconaircraft.com/wp-json
+      gated: false
+      note: No MCP projection; excluded from the crosswalk.
+  graphql: null
+  mcp:
+    url: https://store.iconaircraft.com/api/ucp/mcp
+    gated: false
+    note: tools/list answered anonymously; inputSchemas are real, not inferred.
+crosswalk:
+  - tool: get_product
+    category: catalog
+    rest:
+      - getProduct
+    binding: direct
+    confidence: high
+    note: >-
+      Both return one complete product record. The MCP tool addresses it by UCP catalog identifier;
+      the REST operation addresses it by storefront handle.
+  - tool: search_catalog
+    category: catalog
+    rest:
+      - suggestSearch
+      - listProducts
+    binding: composite
+    confidence: medium
+    note: >-
+      The REST equivalent of an agent search is predictive search plus a full catalog listing to
+      filter locally. search_catalog accepts richer buyer context (country, currency) that neither
+      REST operation exposes.
+  - tool: lookup_catalog
+    category: catalog
+    rest:
+      - getProduct
+      - listProducts
+    binding: composite
+    confidence: medium
+    note: >-
+      lookup_catalog resolves many product or variant identifiers in one call; the REST surface has
+      no batch form, so the equivalent is N calls to getProduct or one listProducts scan.
+  - tool: get_cart
+    category: cart
+    rest:
+      - getCart
+    binding: partial
+    confidence: low
+    note: >-
+      Not equivalent. /cart.js returns the cart bound to the caller's Shopify session cookie;
+      get_cart takes an explicit cart id and is usable by a stateless agent. An agent cannot reach
+      an MCP-created cart through /cart.js.
+mcp_only:
+  - tool: create_cart
+    reason: No public storefront JSON write endpoint. Cart creation for agents is UCP-only.
+  - tool: update_cart
+    reason: No public storefront JSON write endpoint.
+  - tool: cancel_cart
+    reason: No public storefront JSON write endpoint.
+  - tool: create_checkout
+    reason: >-
+      Checkout is not exposed on the anonymous JSON surface at all; Shopify routes agents to UCP so
+      the buyer-approval requirement can be enforced at the protocol level.
+  - tool: get_checkout
+    reason: No anonymous REST checkout read.
+  - tool: update_checkout
+    reason: No anonymous REST checkout write.
+  - tool: complete_checkout
+    reason: >-
+      No REST equivalent by design. Payment completion requires explicit contemporaneous buyer
+      approval per the store's published agent instructions.
+  - tool: cancel_checkout
+    reason: No anonymous REST checkout write.
+  - tool: get_order
+    reason: >-
+      Order lookup requires the buyer's own context; there is no anonymous storefront JSON
+      equivalent.
+rest_only:
+  - operationId: getStoreMeta
+    reason: >-
+      Merchant identity, currency, money format, shipped-to countries and published counts. No UCP
+      tool returns store-level metadata; agents read /.well-known/ucp for capabilities instead.
+  - operationId: listCollections
+    reason: The UCP shopping service has no collection-browse tool; merchandising groupings are REST-only.
+  - operationId: listCollectionProducts
+    reason: No UCP tool scopes a product search to a merchandising collection.
+  - operationId: listProducts
+    reason: >-
+      Full catalog enumeration. search_catalog and lookup_catalog are intent-driven and do not
+      enumerate; an agent that wants the whole 43-product catalog must use REST.
+coverage:
+  mcp_tools: 13
+  rest_operations_store: 7
+  bound: 4
+  mcp_only: 9
+  rest_only: 4
+  note: >-
+    Four of thirteen tools have any REST analogue and only one (get_product) is a clean one-to-one
+    binding. The write surface is entirely MCP-only, which is the finding: for this provider the
+    agent-callable surface is strictly larger than the human-readable JSON surface.

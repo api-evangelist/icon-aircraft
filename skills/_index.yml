@@ -1,0 +1,45 @@
+generated: '2026-08-22'
+method: generated
+source: >-
+  Authored by the API Evangelist enrichment pipeline against the specifications and live probes in
+  this repository, 2026-08-22. Every operationId referenced in these skills appears in one of the
+  OpenAPIs under openapi/ or in the verbatim MCP tool manifest under mcp/.
+skills:
+- file: icon-aircraft-browse-store-catalog.md
+  name: browse-shop-icon-catalog
+  api: icon-aircraft:icon-aircraft-store-api
+  method: generated
+  summary: >-
+    Read the merchandise catalog anonymously — products, variants, prices, availability,
+    collections and search — without creating a cart or a checkout.
+  operations: 6
+- file: icon-aircraft-transact-with-approval.md
+  name: transact-with-shop-icon
+  api: icon-aircraft:icon-aircraft-ucp-mcp
+  method: generated
+  summary: >-
+    Drive the UCP/MCP endpoint from search to a checkout a human approves, with the agent-profile
+    requirement, the minor-units money rule, the idempotency key on complete_checkout, and an
+    explicit reversibility table showing where the point of no return is.
+  operations: 13
+- file: icon-aircraft-read-company-news.md
+  name: read-icon-aircraft-news
+  api: icon-aircraft:icon-aircraft-content-api
+  method: generated
+  summary: >-
+    Pull news posts, marketing pages and media from the corporate WordPress REST API, with
+    pagination via X-WP-Total headers and an explicit prohibition on the anonymous users collection.
+  operations: 9
+provider_published:
+- file: icon-aircraft-store-agents.md
+  name: Agent Instructions — Shop ICON
+  method: searched
+  source: https://store.iconaircraft.com/agents.md
+  status: 200
+  fetched: '2026-08-22'
+  summary: >-
+    The provider's OWN agent-facing document, saved verbatim. Referenced from robots.txt as the
+    canonical agent description of the store. Documents the UCP discovery and MCP endpoints, the
+    typical agent flow, the read-only browsing endpoints, and the human-approval requirement on
+    payment. This is the only agent instruction ICON Aircraft publishes on any host, and it is a
+    Shopify-generated document served under ICON's domain.

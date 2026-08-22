@@ -1,0 +1,437 @@
+openapi: 3.1.0
+info:
+  title: Shop ICON Storefront API
+  version: '2026-08-22'
+  description: >-
+    Anonymous, read-only JSON access to the Shop ICON storefront at store.iconaircraft.com — the
+    ICON Aircraft merchandise store (A5 apparel, hats, scale models, publishing and flight-training
+    products), built on Shopify.
+
+    ICON Aircraft publishes no developer program and no product API for the A5 aircraft itself.
+    This storefront surface is nonetheless a genuine, documented, machine-readable interface: the
+    store's own /agents.md and /robots.txt name these endpoints as the supported read path for AI
+    agents, and each one was probed live and returned 200 without credentials on 2026-08-22.
+
+    Ownership is established from the storefront's own metadata rather than the fetch URL:
+    GET /meta.json returns name "Shop ICON", domain store.iconaircraft.com, myshopify_domain
+    iconaircraft.myshopify.com, and city Vacaville, California — ICON Aircraft's headquarters.
+    The store also stocks Flight Design branded merchandise, consistent with Flight Design being
+    ICON Aircraft's sister company under Shang Gong Group.
+
+    Derived by API Evangelist from https://store.iconaircraft.com/agents.md and from live
+    anonymous probes of every operation below. The transactional surface (cart, checkout, order)
+    is NOT described here — Shopify exposes it to agents through the UCP/MCP endpoint instead;
+    see mcp/icon-aircraft-mcp.yml.
+  contact:
+    name: Shop ICON
+    url: https://store.iconaircraft.com/
+  termsOfService: https://store.iconaircraft.com/policies/terms-of-service
+servers:
+  - url: https://store.iconaircraft.com
+    description: Shop ICON storefront (Shopify, Cloudflare edge)
+  - url: https://iconaircraft.myshopify.com
+    description: Canonical myshopify origin for the same store
+tags:
+  - name: Catalog
+    description: Products and product variants.
+  - name: Collections
+    description: Merchandising collections.
+  - name: Search
+    description: Storefront predictive search.
+  - name: Store
+    description: Store-level metadata.
+paths:
+  /meta.json:
+    get:
+      operationId: getStoreMeta
+      summary: Get storefront metadata
+      description: >-
+        Returns store identity and commerce settings — legal name, location, currency, money
+        format, countries shipped to, published product and collection counts, and the enabled
+        card brands. This is the operation that establishes which merchant the storefront belongs to.
+      tags: [Store]
+      responses:
+        '200':
+          description: Store metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreMeta'
+  /products.json:
+    get:
+      operationId: listProducts
+      summary: List published products
+      description: >-
+        Lists every published product with its variants, options and images. Verified live at 43
+        published products on 2026-08-22. Paginate with page and limit; an empty products array
+        signals the end of the collection.
+      tags: [Catalog]
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: A page of products.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+  /products/{handle}.json:
+    get:
+      operationId: getProduct
+      summary: Get a single product by handle
+      description: >-
+        Returns the full product record for one storefront handle, including every variant with its
+        SKU, price, compare-at price, weight in grams and availability flag.
+      tags: [Catalog]
+      parameters:
+        - $ref: '#/components/parameters/handle'
+      responses:
+        '200':
+          description: The product.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /collections.json:
+    get:
+      operationId: listCollections
+      summary: List published collections
+      description: >-
+        Lists the merchandising collections a shopper can browse. Verified live at 13 published
+        collections on 2026-08-22 — accessories, cold-weather-gear, everything, sport-flying-manuals,
+        frontpage, hats, icon-aircraft-publishing-books, icon-website-featured, mens, new-arrivals,
+        womens and junior-aviators.
+      tags: [Collections]
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: A page of collections.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collections:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collection'
+  /collections/{handle}/products.json:
+    get:
+      operationId: listCollectionProducts
+      summary: List the products in one collection
+      tags: [Collections]
+      parameters:
+        - $ref: '#/components/parameters/handle'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: A page of products within the collection.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /search/suggest.json:
+    get:
+      operationId: suggestSearch
+      summary: Predictive storefront search
+      description: >-
+        Returns predictive search suggestions for a query, grouped by resource type. Anonymous and
+        rate-limited by Shopify at the edge.
+      tags: [Search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: The search query.
+          schema:
+            type: string
+        - name: resources[type]
+          in: query
+          description: Comma-separated resource types to search (product, collection, page, article).
+          schema:
+            type: string
+            default: product
+        - name: resources[limit]
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 10
+      responses:
+        '200':
+          description: Grouped suggestion results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestResults'
+  /cart.js:
+    get:
+      operationId: getCart
+      summary: Get the current session cart
+      description: >-
+        Returns the cart bound to the caller's Shopify session cookie. An anonymous caller with no
+        prior session receives a new empty cart. Agents should prefer the UCP/MCP cart tools over
+        this endpoint — see mcp/icon-aircraft-mcp.yml — because checkout on this storefront requires
+        contemporaneous human approval and cannot be completed through the storefront JSON surface.
+      tags: [Catalog]
+      responses:
+        '200':
+          description: The session cart.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+components:
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: Items per page. Shopify caps this at 250.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 250
+        default: 30
+    page:
+      name: page
+      in: query
+      description: 1-indexed page of the collection.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    handle:
+      name: handle
+      in: path
+      required: true
+      description: The storefront handle (URL slug) of the object.
+      schema:
+        type: string
+  responses:
+    NotFound:
+      description: No published object exists at that handle.
+      content:
+        text/html:
+          schema:
+            type: string
+  schemas:
+    StoreMeta:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+        province:
+          type: string
+        country:
+          type: string
+        currency:
+          type: string
+        domain:
+          type: string
+        url:
+          type: string
+          format: uri
+        myshopify_domain:
+          type: string
+        description:
+          type: string
+        ships_to_countries:
+          type: array
+          items:
+            type: string
+        money_format:
+          type: string
+        published_collections_count:
+          type: integer
+        published_products_count:
+          type: integer
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        handle:
+          type: string
+        body_html:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        vendor:
+          type: string
+        product_type:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Variant'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/Option'
+    Variant:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        title:
+          type: string
+        option1:
+          type: [string, 'null']
+        option2:
+          type: [string, 'null']
+        option3:
+          type: [string, 'null']
+        sku:
+          type: [string, 'null']
+        price:
+          type: string
+          description: Decimal string in the store currency, for example "30.00".
+        compare_at_price:
+          type: [string, 'null']
+        available:
+          type: boolean
+        grams:
+          type: integer
+        requires_shipping:
+          type: boolean
+        taxable:
+          type: boolean
+        position:
+          type: integer
+        featured_image:
+          oneOf:
+            - $ref: '#/components/schemas/Image'
+            - type: 'null'
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        src:
+          type: string
+          format: uri
+        width:
+          type: integer
+        height:
+          type: integer
+        position:
+          type: integer
+        alt:
+          type: [string, 'null']
+        variant_ids:
+          type: array
+          items:
+            type: integer
+    Option:
+      type: object
+      properties:
+        name:
+          type: string
+        position:
+          type: integer
+        values:
+          type: array
+          items:
+            type: string
+    Collection:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        handle:
+          type: string
+        description:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        products_count:
+          type: integer
+    SuggestResults:
+      type: object
+      properties:
+        resources:
+          type: object
+          properties:
+            results:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+    Cart:
+      type: object
+      properties:
+        token:
+          type: string
+        note:
+          type: [string, 'null']
+        attributes:
+          type: object
+          additionalProperties: true
+        original_total_price:
+          type: integer
+        total_price:
+          type: integer
+        item_count:
+          type: integer
+        currency:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true

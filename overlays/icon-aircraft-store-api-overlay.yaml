@@ -1,0 +1,73 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements — Shop ICON Storefront API
+  version: 1.0.0
+extends: ../openapi/icon-aircraft-store-api-openapi.yml
+x-provenance:
+  generated: '2026-08-22'
+  method: generated
+  source: >-
+    API Evangelist enrichment pass, 2026-08-22. Records the ownership evidence, the agent-surface
+    cross-reference and the reversibility warning that belong alongside the spec rather than inside it.
+actions:
+  - target: $.info
+    update:
+      x-api-evangelist-profile: https://apis.io/providers/icon-aircraft/
+      x-derived-by: API Evangelist enrichment pipeline
+      x-derived-from: https://store.iconaircraft.com/agents.md
+      x-provider-published-spec: false
+      x-platform: Shopify
+  - target: $.info
+    update:
+      x-ownership-evidence:
+        probe: GET https://store.iconaircraft.com/meta.json
+        status: 200
+        merchant_name: Shop ICON
+        shop_id: 376732
+        myshopify_domain: iconaircraft.myshopify.com
+        city: Vacaville
+        province: California
+        note: >-
+          Vacaville, California is ICON Aircraft's headquarters, and the store's own published
+          returns address is 2141 ICON Way, Vacaville, CA 95688. The storefront is judged by what it
+          says about itself, not by the host it was fetched from.
+  - target: $.info
+    update:
+      x-agent-surfaces:
+        mcp: https://store.iconaircraft.com/api/ucp/mcp
+        ucp_discovery: https://store.iconaircraft.com/.well-known/ucp
+        agents_md: https://store.iconaircraft.com/agents.md
+        llms_txt: https://store.iconaircraft.com/llms.txt
+        crosswalk: ../mcp/icon-aircraft-tool-crosswalk.yml
+        note: >-
+          The agent-callable surface is strictly larger than this specification. Every cart,
+          checkout and order mutation is MCP-only by design.
+  - target: $.paths['/products.json'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+        item_count: 43
+  - target: $.paths['/collections.json'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+        item_count: 13
+  - target: $.paths['/meta.json'].get
+    update:
+      x-verified:
+        date: '2026-08-22'
+        status: 200
+      x-role: ownership-attestation
+  - target: $.paths['/cart.js'].get
+    update:
+      x-agent-guidance: >-
+        Prefer the UCP/MCP cart tools. This endpoint is bound to a Shopify session cookie and a
+        stateless agent cannot reach an MCP-created cart through it.
+      x-reversibility: ../conventions/icon-aircraft-conventions.yml
+  - target: $.paths['/products/{handle}.json'].get.responses['404']
+    update:
+      x-defect: >-
+        Observed 2026-08-22: an unknown handle returns HTTP 404 with content-type
+        application/json and an HTML body. A client trusting the content-type will throw on parse.

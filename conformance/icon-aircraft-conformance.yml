@@ -1,0 +1,186 @@
+generated: '2026-08-22'
+method: probed
+source: >-
+  Live probes of every surface and every /.well-known/ document in this profile, 2026-08-22. Each
+  entry's evidence names the exact artifact or URL the assertion was read from.
+summary: >-
+  ICON Aircraft claims conformance to nothing. Every standard it conforms to, it conforms to by
+  running WordPress and Shopify, and the honest reading is that the platforms carry the compliance
+  posture and the company inherits it. That said, the inherited posture is not trivial: the Shop
+  ICON storefront implements the Universal Commerce Protocol 2026-04-08 over MCP, with RFC 8414 and
+  RFC 9728 metadata and OpenID Connect discovery, which is a genuine domain standard for agentic
+  commerce and is declared by the contract itself rather than by a marketing page.
+standards:
+- id: ucp
+  name: Universal Commerce Protocol
+  version: '2026-04-08'
+  conforms: true
+  domain_standard: true
+  market: agentic commerce / retail checkout
+  evidence:
+    document: well-known/icon-aircraft-store-ucp.json
+    url: https://store.iconaircraft.com/.well-known/ucp
+    status: 200
+    declaration: >-
+      The merchant profile declares service dev.ucp.shopping with transport "mcp", and the
+      capability set dev.ucp.shopping.checkout, .fulfillment, .discount, .cart, .order,
+      .catalog.search and .catalog.lookup, plus the dev.shopify.catalog extension. Two protocol
+      versions are served side by side (2026-04-08 and 2026-01-23).
+    corroboration: >-
+      The declared endpoint answers. An anonymous tools/list POST to
+      https://store.iconaircraft.com/api/ucp/mcp returned 13 tools matching the declared
+      capabilities.
+  note: >-
+    This is the domain-standard signature for this provider's market. A buyer's agent that already
+    speaks UCP transacts with this store with no bespoke connector; one that does not needs a
+    bilateral integration. It is a platform capability, not ICON-authored code — but it is served
+    from ICON's domain, scoped to ICON's merchant id, and operates on ICON's catalog.
+- id: mcp
+  name: Model Context Protocol
+  conforms: true
+  evidence:
+    url: https://store.iconaircraft.com/api/ucp/mcp
+    status: 200
+    detail: >-
+      JSON-RPC 2.0 request {"jsonrpc":"2.0","id":1,"method":"tools/list"} returned a well-formed
+      result with 13 tools, each carrying name, description and inputSchema. Errors are returned as
+      JSON-RPC error objects with a numeric code, not tunnelled through 200.
+- id: json-schema-2020-12
+  name: JSON Schema draft 2020-12
+  conforms: true
+  evidence:
+    document: mcp/icon-aircraft-ucp-mcp-tools.json
+    detail: >-
+      Every tool inputSchema declares
+      $schema https://json-schema.org/draft/2020-12/schema.
+- id: rfc8414
+  name: OAuth 2.0 Authorization Server Metadata
+  conforms: true
+  evidence:
+    document: well-known/icon-aircraft-store-oauth-authorization-server.json
+    url: https://store.iconaircraft.com/.well-known/oauth-authorization-server
+    status: 200
+    detail: Issuer https://shopify.com/authentication/376732 with 4 scopes and PKCE S256.
+- id: rfc9728
+  name: OAuth 2.0 Protected Resource Metadata
+  conforms: true
+  evidence:
+    document: well-known/icon-aircraft-store-oauth-protected-resource.json
+    url: https://store.iconaircraft.com/.well-known/oauth-protected-resource/api/ucp/mcp
+    status: 200
+    detail: >-
+      Names the MCP endpoint as the protected resource and the Shopify issuer as its authorization
+      server, with bearer_methods_supported ["header"].
+- id: oidc-discovery
+  name: OpenID Connect Discovery 1.0
+  conforms: true
+  evidence:
+    document: well-known/icon-aircraft-store-openid-configuration.json
+    url: https://store.iconaircraft.com/.well-known/openid-configuration
+    status: 200
+    detail: Shopify customer accounts. Buyer identity only; issues no developer credential.
+- id: oauth2
+  name: OAuth 2.0
+  conforms: true
+  evidence:
+    detail: >-
+      authorization_code and refresh_token grants with PKCE S256, per the authorization-server
+      metadata document.
+- id: llms-txt
+  name: llms.txt
+  conforms: true
+  evidence:
+    url: https://store.iconaircraft.com/llms.txt
+    status: 200
+    content_type: text/markdown
+    detail: >-
+      Served on the storefront host only. www.iconaircraft.com/llms.txt returns 404.
+- id: agents-md
+  name: agents.md agent instructions
+  conforms: true
+  evidence:
+    url: https://store.iconaircraft.com/agents.md
+    status: 200
+    detail: >-
+      Referenced from robots.txt as the canonical agent-facing description of the store, and it
+      documents both the read path and the transactional path.
+- id: rfc8288
+  name: Web Linking (Link header pagination)
+  conforms: true
+  evidence:
+    url: https://www.iconaircraft.com/wp-json/wp/v2/posts?per_page=1
+    status: 200
+    detail: 'Link: <...page=2>; rel="next" returned on paginated collections.'
+- id: oembed
+  name: oEmbed
+  conforms: true
+  evidence:
+    url: https://www.iconaircraft.com/wp-json/oembed/1.0/embed
+    detail: >-
+      The oembed/1.0 namespace is registered and the homepage advertises JSON and XML oEmbed
+      discovery links.
+- id: rss-2.0
+  name: RSS 2.0
+  conforms: true
+  evidence:
+    url: https://www.iconaircraft.com/feed/
+    status: 200
+    detail: Valid RSS 2.0 with content, dc, atom and sy modules.
+- id: sitemaps-org
+  name: sitemaps.org protocol
+  conforms: true
+  evidence:
+    url: https://www.iconaircraft.com/sitemap_index.xml
+    status: 200
+    detail: >-
+      Yoast-generated sitemap index on the corporate site; Shopify sitemap index on the storefront,
+      including a sitemap_agentic_discovery.xml.
+- id: robots-txt
+  name: robots.txt
+  conforms: true
+  evidence:
+    detail: >-
+      Both hosts serve one. The corporate site disallows nothing. The storefront's is unusually
+      substantive — it names the agents.md, UCP discovery and UCP/MCP endpoints and states the
+      human-approval requirement for checkout.
+- id: rfc9457
+  name: RFC 9457 Problem Details for HTTP APIs
+  conforms: false
+  evidence:
+    detail: >-
+      No surface uses application/problem+json. WordPress returns its own code/message/data
+      envelope; UCP/MCP returns JSON-RPC errors; the storefront JSON surface returns an HTML body
+      under a JSON content-type on 404.
+- id: rfc8594
+  name: RFC 8594 Sunset header
+  conforms: false
+  evidence:
+    detail: No Deprecation or Sunset header was returned on any probed response.
+- id: rfc9116
+  name: RFC 9116 security.txt
+  conforms: false
+  evidence:
+    detail: /.well-known/security.txt returns 404 on both hosts.
+- id: dnssec
+  name: DNSSEC
+  conforms: false
+  evidence:
+    document: security/icon-aircraft-domain-security.yml
+    detail: iconaircraft.com is not DNSSEC-signed and publishes no CAA records.
+not_applicable:
+- id: fhir
+  reason: Not a healthcare provider.
+- id: psd2
+  reason: Not a financial institution; ICON is the merchant of record, not a payment service provider.
+- id: fapi
+  reason: No financial-grade API surface.
+- id: scim
+  reason: No identity provisioning surface.
+- id: odata
+  reason: No OData surface.
+certifications:
+  published: false
+  note: >-
+    No trust center, no SOC 2 / ISO 27001 / PCI attestation and no compliance page were found on
+    either host. Card data on the storefront is handled by Shopify and never touches an ICON
+    surface, but ICON publishes no statement to that effect, so no Compliance pointer is emitted.

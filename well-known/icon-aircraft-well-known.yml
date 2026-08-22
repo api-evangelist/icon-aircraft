@@ -1,0 +1,88 @@
+generated: '2026-08-22'
+method: probed
+source: >-
+  Anonymous GET probes of each /.well-known/ path on every host in this profile, 2026-08-22.
+note: >-
+  www.iconaircraft.com serves nothing at any /.well-known/ path — every probe returned the site's
+  WordPress 404 template. store.iconaircraft.com, the Shopify-hosted Shop ICON storefront, serves
+  four real documents: the Universal Commerce Protocol merchant profile, OpenID Connect discovery,
+  OAuth 2.0 authorization-server metadata, and RFC 9728 OAuth protected-resource metadata for the
+  storefront and for its UCP/MCP endpoint. Those four are Shopify platform documents served under
+  ICON Aircraft's own domain and scoped to ICON's own merchant id (376732, "Shop ICON").
+  No security.txt and no api-catalog are served on any host.
+hosts:
+  - host: www.iconaircraft.com
+    note: WordPress 6.7.1 corporate site on Pantheon behind Fastly. Every /.well-known/ path 404s.
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+        file: null
+      - path: /.well-known/openid-configuration
+        status: 404
+        file: null
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+        file: null
+      - path: /.well-known/api-catalog
+        status: 404
+        file: null
+      - path: /.well-known/ai-plugin.json
+        status: 404
+        file: null
+      - path: /.well-known/agent-card.json
+        status: 404
+        file: null
+      - path: /.well-known/agent.json
+        status: 404
+        file: null
+  - host: store.iconaircraft.com
+    note: >-
+      Shop ICON, the ICON Aircraft merchandise storefront on Shopify. Four served documents,
+      all returning real JSON rather than an HTML shell.
+    documents:
+      - path: /.well-known/ucp
+        status: 200
+        file: icon-aircraft-store-ucp.json
+        content_type: application/json
+        summary: >-
+          Universal Commerce Protocol merchant profile, version 2026-04-08 (also serving 2026-01-23).
+          Declares the dev.ucp.shopping service over MCP transport, the checkout, fulfillment,
+          discount, cart, order, catalog.search and catalog.lookup capabilities, the dev.shopify.catalog
+          extension, and three payment handlers (Google Pay, Shopify card, Shop Pay).
+      - path: /.well-known/openid-configuration
+        status: 200
+        file: icon-aircraft-store-openid-configuration.json
+        content_type: application/json
+        summary: >-
+          OpenID Connect discovery for Shopify customer accounts, issuer
+          https://shopify.com/authentication/376732.
+      - path: /.well-known/oauth-authorization-server
+        status: 200
+        file: icon-aircraft-store-oauth-authorization-server.json
+        content_type: application/json
+        summary: >-
+          RFC 8414 authorization-server metadata for the same issuer.
+      - path: /.well-known/oauth-protected-resource
+        status: 200
+        file: icon-aircraft-store-oauth-protected-resource.json
+        content_type: application/json
+        summary: >-
+          RFC 9728 protected-resource metadata naming https://store.iconaircraft.com as the resource
+          and https://shopify.com/authentication/376732 as its authorization server. The per-endpoint
+          variant at /.well-known/oauth-protected-resource/api/ucp/mcp also answers 200 and names the
+          UCP/MCP endpoint as the protected resource.
+      - path: /.well-known/security.txt
+        status: 404
+        file: null
+      - path: /.well-known/api-catalog
+        status: 404
+        file: null
+      - path: /.well-known/ai-plugin.json
+        status: 404
+        file: null
+      - path: /.well-known/agent-card.json
+        status: 404
+        file: null
+      - path: /.well-known/agent.json
+        status: 404
+        file: null

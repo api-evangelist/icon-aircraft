@@ -1,0 +1,35 @@
+generated: '2026-08-22'
+method: probed
+source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
+hosts:
+- host: www.iconaircraft.com
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Sep 27 17:17:29 2026 GMT
+  hsts: true
+  hsts_max_age: 300
+- host: store.iconaircraft.com
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Oct 20 04:25:33 2026 GMT
+  hsts: true
+  hsts_max_age: 7889238
+- host: iconaircraft.myshopify.com
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Oct  6 15:01:35 2026 GMT
+  hsts: true
+  hsts_max_age: 7889238
+domains:
+- domain: iconaircraft.com
+  dnssec: false
+  caa: []
+  spf: true
+  dmarc: true
+  dmarc_policy: quarantine
+- domain: myshopify.com
+  dnssec: false
+  caa: []
+  spf: true
+  dmarc: true
+  dmarc_policy: reject
