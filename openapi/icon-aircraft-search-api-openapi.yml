@@ -1,0 +1,193 @@
+openapi: 3.2.0
+info:
+  title: Icon Aircraft Search API
+  version: '1.0'
+  description: 'Operations tagged Search across 2 of this provider''s published API definitions: icon-aircraft-content-api-openapi.yml, icon-aircraft-store-api-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://www.iconaircraft.com/wp-json
+  description: Production WordPress REST API (Pantheon origin, Fastly edge)
+- url: https://store.iconaircraft.com
+  description: Shop ICON storefront (Shopify, Cloudflare edge)
+- url: https://iconaircraft.myshopify.com
+  description: Canonical myshopify origin for the same store
+tags:
+- name: Search
+  description: Cross-type site search.
+paths:
+  /wp/v2/search:
+    get:
+      operationId: searchContent
+      summary: Search across content types
+      description: Cross-type site search returning lightweight result stubs (id, title, url, type, subtype). Verified live at 242 searchable items on 2026-08-22.
+      tags:
+      - Search
+      parameters:
+      - name: search
+        in: query
+        required: true
+        description: The search term.
+        schema:
+          type: string
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/perPage'
+      - name: type
+        in: query
+        description: Limit results to a search-result type.
+        schema:
+          type: string
+          enum:
+          - post
+          - term
+          - post-format
+          default: post
+      - name: subtype
+        in: query
+        description: Limit results to one or more content subtypes (for example post or page).
+        schema:
+          type: string
+          default: any
+      responses:
+        '200':
+          description: A page of search results.
+          headers:
+            X-WP-Total:
+              $ref: '#/components/headers/XWPTotal'
+            X-WP-TotalPages:
+              $ref: '#/components/headers/XWPTotalPages'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResult'
+        '400':
+          $ref: '#/components/responses/InvalidParam'
+    servers:
+    - url: https://www.iconaircraft.com/wp-json
+      description: Production WordPress REST API (Pantheon origin, Fastly edge)
+  /search/suggest.json:
+    get:
+      operationId: suggestSearch
+      summary: Predictive storefront search
+      description: Returns predictive search suggestions for a query, grouped by resource type. Anonymous and rate-limited by Shopify at the edge.
+      tags:
+      - Search
+      parameters:
+      - name: q
+        in: query
+        required: true
+        description: The search query.
+        schema:
+          type: string
+      - name: resources[type]
+        in: query
+        description: Comma-separated resource types to search (product, collection, page, article).
+        schema:
+          type: string
+          default: product
+      - name: resources[limit]
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 10
+      responses:
+        '200':
+          description: Grouped suggestion results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestResults'
+    servers:
+    - url: https://store.iconaircraft.com
+      description: Shop ICON storefront (Shopify, Cloudflare edge)
+    - url: https://iconaircraft.myshopify.com
+      description: Canonical myshopify origin for the same store
+components:
+  schemas:
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+        type:
+          type: string
+        subtype:
+          type: string
+        _links:
+          type: object
+          additionalProperties: true
+    Error:
+      type: object
+      description: The WordPress REST error envelope. Not RFC 9457 — the media type is application/json and the machine-readable code lives in `code`, not `type`.
+      properties:
+        code:
+          type: string
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_forbidden
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            status:
+              type: integer
+          additionalProperties: true
+    SuggestResults:
+      type: object
+      properties:
+        resources:
+          type: object
+          properties:
+            results:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+  headers:
+    XWPTotal:
+      description: Total number of items in the collection matching the query.
+      schema:
+        type: integer
+    XWPTotalPages:
+      description: Total number of pages available for the query.
+      schema:
+        type: integer
+  parameters:
+    page:
+      name: page
+      in: query
+      description: 1-indexed page of the collection to return.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    perPage:
+      name: per_page
+      in: query
+      description: Items per page. Maximum 100.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  responses:
+    InvalidParam:
+      description: One or more query parameters failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+x-refined-from:
+- icon-aircraft-content-api-openapi.yml
+- icon-aircraft-store-api-openapi.yml

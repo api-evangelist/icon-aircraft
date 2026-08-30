@@ -1,0 +1,209 @@
+openapi: 3.2.0
+info:
+  title: ICON Aircraft Content Media API
+  version: wp/v2
+  description: 'Anonymous, read-only access to the editorial and marketing content behind www.iconaircraft.com, served by the WordPress core REST API (WordPress 6.7.1). ICON Aircraft publishes no developer program and no product API; this surface is the machine-readable projection of its corporate website — news posts, marketing and policy pages, the media library, and the category/tag taxonomy — and is captured here for discovery purposes only.
+
+    Derived by API Evangelist from the live route index at https://www.iconaircraft.com/wp-json/ (HTTP 200, 233 routes, 10 namespaces) and from anonymous GET probes of each collection listed below on 2026-08-22. Only routes that answered 200 without credentials are described. Write methods exist on these routes but require a WordPress application password and are therefore excluded. The /wp/v2/users collection also answers anonymously; it is deliberately NOT described here because it returns identifiable author records.'
+  contact:
+    name: ICON Aircraft
+    url: https://www.iconaircraft.com/company/contact/
+  license:
+    name: All rights reserved — ICON Aircraft
+    url: https://www.iconaircraft.com/terms-of-use/
+servers:
+- url: https://www.iconaircraft.com/wp-json
+  description: Production WordPress REST API (Pantheon origin, Fastly edge)
+tags:
+- name: Media
+  description: The site media library — photography, video posters and documents.
+paths:
+  /wp/v2/media:
+    get:
+      operationId: listMedia
+      summary: List media library items
+      description: Lists items in the site media library — ICON A5 photography, video posters, brochures and other uploaded assets, each with its generated size renditions. Verified live at 1,709 items on 2026-08-22.
+      tags:
+      - Media
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/perPage'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/mediaType'
+      - $ref: '#/components/parameters/context'
+      responses:
+        '200':
+          description: A page of media items.
+          headers:
+            X-WP-Total:
+              $ref: '#/components/headers/XWPTotal'
+            X-WP-TotalPages:
+              $ref: '#/components/headers/XWPTotalPages'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MediaItem'
+        '400':
+          $ref: '#/components/responses/InvalidParam'
+  /wp/v2/media/{id}:
+    get:
+      operationId: getMediaItem
+      summary: Get a single media item
+      tags:
+      - Media
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+      responses:
+        '200':
+          description: The media item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  responses:
+    NotFound:
+      description: No object exists with that identifier.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InvalidParam:
+      description: One or more query parameters failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  headers:
+    XWPTotal:
+      description: Total number of items in the collection matching the query.
+      schema:
+        type: integer
+    XWPTotalPages:
+      description: Total number of pages available for the query.
+      schema:
+        type: integer
+  parameters:
+    context:
+      name: context
+      in: query
+      description: Scope of the response. Anonymous callers may only use `view` and `embed`; `edit` requires authentication and returns 401 otherwise.
+      schema:
+        type: string
+        enum:
+        - view
+        - embed
+        - edit
+        default: view
+    id:
+      name: id
+      in: path
+      required: true
+      description: Unique numeric identifier for the object.
+      schema:
+        type: integer
+    page:
+      name: page
+      in: query
+      description: 1-indexed page of the collection to return.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    search:
+      name: search
+      in: query
+      description: Limit results to those matching a string.
+      schema:
+        type: string
+    mediaType:
+      name: media_type
+      in: query
+      schema:
+        type: string
+        enum:
+        - image
+        - video
+        - text
+        - application
+        - audio
+    perPage:
+      name: per_page
+      in: query
+      description: Items per page. Maximum 100.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  schemas:
+    RenderedText:
+      type: object
+      description: A WordPress rendered-text field.
+      properties:
+        rendered:
+          type: string
+          description: HTML rendering of the field.
+        protected:
+          type: boolean
+    Error:
+      type: object
+      description: The WordPress REST error envelope. Not RFC 9457 — the media type is application/json and the machine-readable code lives in `code`, not `type`.
+      properties:
+        code:
+          type: string
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_forbidden
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            status:
+              type: integer
+          additionalProperties: true
+    MediaItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        slug:
+          type: string
+        link:
+          type: string
+          format: uri
+        title:
+          $ref: '#/components/schemas/RenderedText'
+        caption:
+          $ref: '#/components/schemas/RenderedText'
+        alt_text:
+          type: string
+        media_type:
+          type: string
+        mime_type:
+          type: string
+        source_url:
+          type: string
+          format: uri
+        media_details:
+          type: object
+          properties:
+            width:
+              type: integer
+            height:
+              type: integer
+            file:
+              type: string
+            sizes:
+              type: object
+              additionalProperties: true

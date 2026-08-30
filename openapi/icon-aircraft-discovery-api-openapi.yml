@@ -1,0 +1,233 @@
+openapi: 3.2.0
+info:
+  title: ICON Aircraft Content Discovery API
+  version: wp/v2
+  description: 'Anonymous, read-only access to the editorial and marketing content behind www.iconaircraft.com, served by the WordPress core REST API (WordPress 6.7.1). ICON Aircraft publishes no developer program and no product API; this surface is the machine-readable projection of its corporate website — news posts, marketing and policy pages, the media library, and the category/tag taxonomy — and is captured here for discovery purposes only.
+
+    Derived by API Evangelist from the live route index at https://www.iconaircraft.com/wp-json/ (HTTP 200, 233 routes, 10 namespaces) and from anonymous GET probes of each collection listed below on 2026-08-22. Only routes that answered 200 without credentials are described. Write methods exist on these routes but require a WordPress application password and are therefore excluded. The /wp/v2/users collection also answers anonymously; it is deliberately NOT described here because it returns identifiable author records.'
+  contact:
+    name: ICON Aircraft
+    url: https://www.iconaircraft.com/company/contact/
+  license:
+    name: All rights reserved — ICON Aircraft
+    url: https://www.iconaircraft.com/terms-of-use/
+servers:
+- url: https://www.iconaircraft.com/wp-json
+  description: Production WordPress REST API (Pantheon origin, Fastly edge)
+tags:
+- name: Discovery
+  description: Self-describing metadata about the content types this site exposes.
+paths:
+  /:
+    get:
+      operationId: getApiRoot
+      summary: Get the API discovery document
+      description: Returns the WordPress REST API index — site name, description, URL, registered namespaces, the full route table, and the supported authentication methods.
+      tags:
+      - Discovery
+      responses:
+        '200':
+          description: The API index document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRoot'
+  /wp/v2/types:
+    get:
+      operationId: listTypes
+      summary: List registered content types
+      description: Returns the content types this site registers and their REST base paths. ICON Aircraft registers one site-specific type beyond WordPress core, `work`, which is REST-visible but held 0 published entries when probed on 2026-08-22.
+      tags:
+      - Discovery
+      responses:
+        '200':
+          description: A map of type slug to type descriptor.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/ContentType'
+  /wp/v2/taxonomies:
+    get:
+      operationId: listTaxonomies
+      summary: List registered taxonomies
+      tags:
+      - Discovery
+      responses:
+        '200':
+          description: A map of taxonomy slug to taxonomy descriptor.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/Taxonomy'
+  /wp/v2/statuses:
+    get:
+      operationId: listStatuses
+      summary: List post statuses
+      tags:
+      - Discovery
+      responses:
+        '200':
+          description: A map of status slug to status descriptor.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    slug:
+                      type: string
+                    public:
+                      type: boolean
+                    queryable:
+                      type: boolean
+  /oembed/1.0/embed:
+    get:
+      operationId: getOEmbed
+      summary: Get an oEmbed representation of a URL on this site
+      tags:
+      - Discovery
+      parameters:
+      - name: url
+        in: query
+        required: true
+        description: The URL of the ICON Aircraft post or page to embed.
+        schema:
+          type: string
+          format: uri
+      - name: format
+        in: query
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+          default: json
+      - name: maxwidth
+        in: query
+        schema:
+          type: integer
+          default: 600
+      responses:
+        '200':
+          description: The oEmbed document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OEmbed'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  responses:
+    NotFound:
+      description: No object exists with that identifier.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      description: The WordPress REST error envelope. Not RFC 9457 — the media type is application/json and the machine-readable code lives in `code`, not `type`.
+      properties:
+        code:
+          type: string
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_forbidden
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            status:
+              type: integer
+          additionalProperties: true
+    OEmbed:
+      type: object
+      properties:
+        version:
+          type: string
+        provider_name:
+          type: string
+        provider_url:
+          type: string
+          format: uri
+        type:
+          type: string
+        title:
+          type: string
+        html:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+    ContentType:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        hierarchical:
+          type: boolean
+        has_archive:
+          oneOf:
+          - type: boolean
+          - type: string
+        rest_base:
+          type: string
+        taxonomies:
+          type: array
+          items:
+            type: string
+    Taxonomy:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        hierarchical:
+          type: boolean
+        rest_base:
+          type: string
+        types:
+          type: array
+          items:
+            type: string
+    ApiRoot:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+        home:
+          type: string
+          format: uri
+        namespaces:
+          type: array
+          items:
+            type: string
+        authentication:
+          type: object
+          additionalProperties: true
+        routes:
+          type: object
+          additionalProperties: true
