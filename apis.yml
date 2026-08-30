@@ -67,6 +67,11 @@ apis:
   tags:
   - E-Commerce
   - Catalog
+  - Product
+  - Retail
+  tags_raw:
+  - E-Commerce
+  - Catalog
   - Products
   - Retail
   properties:
@@ -146,6 +151,8 @@ apis:
   humanURL: https://www.iconaircraft.com/wp-json/
   baseURL: https://www.iconaircraft.com/wp-json
   tags:
+  - Collection
+  tags_raw:
   - Collections
   properties:
   - type: OpenAPI

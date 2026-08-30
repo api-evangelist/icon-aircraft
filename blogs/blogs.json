@@ -2,6 +2,20 @@
   "repo": "icon-aircraft",
   "feeds": [
     {
+      "source": "https://www.iconaircraft.com/company/faq/feed/",
+      "feed_url": "https://www.iconaircraft.com/company/faq/feed/",
+      "title": "",
+      "saved": 0,
+      "method": "feed"
+    },
+    {
+      "source": "https://www.iconaircraft.com/updates/feed/",
+      "feed_url": "https://www.iconaircraft.com/updates/feed/",
+      "title": "",
+      "saved": 0,
+      "method": "feed"
+    },
+    {
       "source": "https://www.iconaircraft.com/company/faq/",
       "feed_url": "https://www.iconaircraft.com/company/faq/feed/",
       "title": "",
@@ -16,6 +30,6 @@
       "method": "discovered"
     }
   ],
-  "post_count": 0,
-  "fetched": "2026-08-22T20:20:02Z"
+  "post_count": 10,
+  "fetched": "2026-08-30T22:33:40Z"
 }
