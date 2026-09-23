@@ -2,13 +2,7 @@ openapi: 3.2.0
 info:
   title: Shop ICON Storefront Catalog API
   version: '2026-08-22'
-  description: 'Anonymous, read-only JSON access to the Shop ICON storefront at store.iconaircraft.com — the ICON Aircraft merchandise store (A5 apparel, hats, scale models, publishing and flight-training products), built on Shopify.
-
-    ICON Aircraft publishes no developer program and no product API for the A5 aircraft itself. This storefront surface is nonetheless a genuine, documented, machine-readable interface: the store''s own /agents.md and /robots.txt name these endpoints as the supported read path for AI agents, and each one was probed live and returned 200 without credentials on 2026-08-22.
-
-    Ownership is established from the storefront''s own metadata rather than the fetch URL: GET /meta.json returns name "Shop ICON", domain store.iconaircraft.com, myshopify_domain iconaircraft.myshopify.com, and city Vacaville, California — ICON Aircraft''s headquarters. The store also stocks Flight Design branded merchandise, consistent with Flight Design being ICON Aircraft''s sister company under Shang Gong Group.
-
-    Derived by API Evangelist from https://store.iconaircraft.com/agents.md and from live anonymous probes of every operation below. The transactional surface (cart, checkout, order) is NOT described here — Shopify exposes it to agents through the UCP/MCP endpoint instead; see mcp/icon-aircraft-mcp.yml.'
+  description: Anonymous, read-only JSON access to the Shop ICON storefront at store.iconaircraft.com — the ICON Aircraft merchandise store (A5 apparel, hats, scale models, publishing and flight-training products), built on Shopify.
   contact:
     name: Shop ICON
     url: https://store.iconaircraft.com/
@@ -80,38 +74,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Cart'
 components:
-  responses:
-    NotFound:
-      description: No published object exists at that handle.
-      content:
-        text/html:
-          schema:
-            type: string
   schemas:
-    Image:
-      type: object
-      properties:
-        id:
-          type: integer
-        product_id:
-          type: integer
-        src:
-          type: string
-          format: uri
-        width:
-          type: integer
-        height:
-          type: integer
-        position:
-          type: integer
-        alt:
-          type:
-          - string
-          - 'null'
-        variant_ids:
-          type: array
-          items:
-            type: integer
     Option:
       type: object
       properties:
@@ -234,7 +197,40 @@ components:
           items:
             type: object
             additionalProperties: true
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        src:
+          type: string
+          format: uri
+        width:
+          type: integer
+        height:
+          type: integer
+        position:
+          type: integer
+        alt:
+          type:
+          - string
+          - 'null'
+        variant_ids:
+          type: array
+          items:
+            type: integer
   parameters:
+    limit:
+      name: limit
+      in: query
+      description: Items per page. Shopify caps this at 250.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 250
+        default: 30
     page:
       name: page
       in: query
@@ -250,12 +246,10 @@ components:
       description: The storefront handle (URL slug) of the object.
       schema:
         type: string
-    limit:
-      name: limit
-      in: query
-      description: Items per page. Shopify caps this at 250.
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 250
-        default: 30
+  responses:
+    NotFound:
+      description: No published object exists at that handle.
+      content:
+        text/html:
+          schema:
+            type: string

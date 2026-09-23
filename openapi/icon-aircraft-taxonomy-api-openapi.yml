@@ -2,9 +2,7 @@ openapi: 3.2.0
 info:
   title: ICON Aircraft Content Taxonomy API
   version: wp/v2
-  description: 'Anonymous, read-only access to the editorial and marketing content behind www.iconaircraft.com, served by the WordPress core REST API (WordPress 6.7.1). ICON Aircraft publishes no developer program and no product API; this surface is the machine-readable projection of its corporate website — news posts, marketing and policy pages, the media library, and the category/tag taxonomy — and is captured here for discovery purposes only.
-
-    Derived by API Evangelist from the live route index at https://www.iconaircraft.com/wp-json/ (HTTP 200, 233 routes, 10 namespaces) and from anonymous GET probes of each collection listed below on 2026-08-22. Only routes that answered 200 without credentials are described. Write methods exist on these routes but require a WordPress application password and are therefore excluded. The /wp/v2/users collection also answers anonymously; it is deliberately NOT described here because it returns identifiable author records.'
+  description: Anonymous, read-only access to the editorial and marketing content behind www.iconaircraft.com, served by the WordPress core REST API (WordPress 6.7.1).
   contact:
     name: ICON Aircraft
     url: https://www.iconaircraft.com/company/contact/
@@ -109,29 +107,55 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 components:
-  responses:
-    NotFound:
-      description: No object exists with that identifier.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    InvalidParam:
-      description: One or more query parameters failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  headers:
-    XWPTotal:
-      description: Total number of items in the collection matching the query.
-      schema:
-        type: integer
-    XWPTotalPages:
-      description: Total number of pages available for the query.
-      schema:
-        type: integer
+  schemas:
+    Term:
+      type: object
+      properties:
+        id:
+          type: integer
+        count:
+          type: integer
+        description:
+          type: string
+        link:
+          type: string
+          format: uri
+        name:
+          type: string
+        slug:
+          type: string
+        taxonomy:
+          type: string
+        parent:
+          type: integer
+    Error:
+      type: object
+      description: The WordPress REST error envelope. Not RFC 9457 — the media type is application/json and the machine-readable code lives in `code`, not `type`.
+      properties:
+        code:
+          type: string
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_forbidden
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            status:
+              type: integer
+          additionalProperties: true
   parameters:
+    perPage:
+      name: per_page
+      in: query
+      description: Items per page. Maximum 100.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
     search:
       name: search
       in: query
@@ -160,51 +184,25 @@ components:
       description: Unique numeric identifier for the object.
       schema:
         type: integer
-    perPage:
-      name: per_page
-      in: query
-      description: Items per page. Maximum 100.
+  responses:
+    NotFound:
+      description: No object exists with that identifier.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InvalidParam:
+      description: One or more query parameters failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  headers:
+    XWPTotal:
+      description: Total number of items in the collection matching the query.
       schema:
         type: integer
-        minimum: 1
-        maximum: 100
-        default: 10
-  schemas:
-    Error:
-      type: object
-      description: The WordPress REST error envelope. Not RFC 9457 — the media type is application/json and the machine-readable code lives in `code`, not `type`.
-      properties:
-        code:
-          type: string
-          examples:
-          - rest_post_invalid_id
-          - rest_invalid_param
-          - rest_forbidden
-        message:
-          type: string
-        data:
-          type: object
-          properties:
-            status:
-              type: integer
-          additionalProperties: true
-    Term:
-      type: object
-      properties:
-        id:
-          type: integer
-        count:
-          type: integer
-        description:
-          type: string
-        link:
-          type: string
-          format: uri
-        name:
-          type: string
-        slug:
-          type: string
-        taxonomy:
-          type: string
-        parent:
-          type: integer
+    XWPTotalPages:
+      description: Total number of pages available for the query.
+      schema:
+        type: integer

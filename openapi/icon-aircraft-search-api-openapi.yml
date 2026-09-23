@@ -2,7 +2,7 @@ openapi: 3.2.0
 info:
   title: Icon Aircraft Search API
   version: '1.0'
-  description: 'Operations tagged Search across 2 of this provider''s published API definitions: icon-aircraft-content-api-openapi.yml, icon-aircraft-store-api-openapi.yml. Each path carries the servers of the definition it was published in.'
+  description: 'Operations tagged Search across 2 of this provider''s published API definitions: icon-aircraft-content-api-openapi.yml, icon-aircraft-search-api-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://www.iconaircraft.com/wp-json
   description: Production WordPress REST API (Pantheon origin, Fastly edge)
@@ -66,6 +66,11 @@ paths:
     - url: https://www.iconaircraft.com/wp-json
       description: Production WordPress REST API (Pantheon origin, Fastly edge)
   /search/suggest.json:
+    servers:
+    - url: https://store.iconaircraft.com
+      description: Shop ICON storefront (Shopify, Cloudflare edge)
+    - url: https://iconaircraft.myshopify.com
+      description: Canonical myshopify origin for the same store
     get:
       operationId: suggestSearch
       summary: Predictive storefront search
@@ -99,11 +104,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuggestResults'
-    servers:
-    - url: https://store.iconaircraft.com
-      description: Shop ICON storefront (Shopify, Cloudflare edge)
-    - url: https://iconaircraft.myshopify.com
-      description: Canonical myshopify origin for the same store
 components:
   schemas:
     SearchResult:
@@ -154,24 +154,7 @@ components:
                 items:
                   type: object
                   additionalProperties: true
-  headers:
-    XWPTotal:
-      description: Total number of items in the collection matching the query.
-      schema:
-        type: integer
-    XWPTotalPages:
-      description: Total number of pages available for the query.
-      schema:
-        type: integer
   parameters:
-    page:
-      name: page
-      in: query
-      description: 1-indexed page of the collection to return.
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
     perPage:
       name: per_page
       in: query
@@ -181,6 +164,14 @@ components:
         minimum: 1
         maximum: 100
         default: 10
+    page:
+      name: page
+      in: query
+      description: 1-indexed page of the collection to return.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
   responses:
     InvalidParam:
       description: One or more query parameters failed validation.
@@ -188,6 +179,15 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+  headers:
+    XWPTotal:
+      description: Total number of items in the collection matching the query.
+      schema:
+        type: integer
+    XWPTotalPages:
+      description: Total number of pages available for the query.
+      schema:
+        type: integer
 x-refined-from:
 - icon-aircraft-content-api-openapi.yml
-- icon-aircraft-store-api-openapi.yml
+- icon-aircraft-search-api-openapi.yml

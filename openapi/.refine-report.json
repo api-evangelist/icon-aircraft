@@ -1,0 +1,42 @@
+{
+  "provider": "icon-aircraft",
+  "sources": [
+    "_original/icon-aircraft-content-api-openapi.yml",
+    "icon-aircraft-catalog-api-openapi.yml",
+    "icon-aircraft-collections-api-openapi.yml",
+    "icon-aircraft-search-api-openapi.yml",
+    "icon-aircraft-store-api-openapi.yml"
+  ],
+  "outputs": [
+    "icon-aircraft-discovery-api-openapi.yml",
+    "icon-aircraft-media-api-openapi.yml",
+    "icon-aircraft-pages-api-openapi.yml",
+    "icon-aircraft-posts-api-openapi.yml",
+    "icon-aircraft-search-api-openapi.yml",
+    "icon-aircraft-taxonomy-api-openapi.yml",
+    "icon-aircraft-catalog-api-openapi.yml",
+    "icon-aircraft-collections-api-openapi.yml",
+    "icon-aircraft-store-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [
+    "icon-aircraft-catalog-api-openapi.yml: previously refined output kept for 3 operation(s) no archived document covers (e.g. /cart.js get, /products.json get, /products/{handle}.json get); its other 0 operation(s) came from the archive and were dropped from it. The archive is incomplete for this provider \u2014 re-harvest to restore _original/ as the full source of truth.",
+    "icon-aircraft-collections-api-openapi.yml: previously refined output kept for 2 operation(s) no archived document covers (e.g. /collections.json get, /collections/{handle}/products.json get); its other 0 operation(s) came from the archive and were dropped from it. The archive is incomplete for this provider \u2014 re-harvest to restore _original/ as the full source of truth.",
+    "icon-aircraft-search-api-openapi.yml: previously refined output kept for 1 operation(s) no archived document covers (e.g. /search/suggest.json get); its other 1 operation(s) came from the archive and were dropped from it. The archive is incomplete for this provider \u2014 re-harvest to restore _original/ as the full source of truth.",
+    "icon-aircraft-store-api-openapi.yml: previously refined output kept for 1 operation(s) no archived document covers (e.g. /meta.json get); its other 0 operation(s) came from the archive and were dropped from it. The archive is incomplete for this provider \u2014 re-harvest to restore _original/ as the full source of truth."
+  ],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "icon-aircraft-content-api-openapi.yml: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "tag 'Search' spans 2 source specs (icon-aircraft-content-api-openapi.yml, icon-aircraft-search-api-openapi.yml): per-path servers applied",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "icon-aircraft-discovery-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "icon-aircraft-media-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "icon-aircraft-pages-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "icon-aircraft-posts-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "icon-aircraft-taxonomy-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}
