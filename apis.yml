@@ -110,6 +110,9 @@ apis:
     url: conformance/icon-aircraft-conformance.yml
   - type: RateLimits
     url: rate-limits/icon-aircraft-rate-limits.yml
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: storefront
 - aid: icon-aircraft:icon-aircraft-ucp-mcp
   name: Shop ICON UCP/MCP Server
   description: >-
@@ -136,157 +139,29 @@ apis:
     url: scopes/icon-aircraft-scopes.yml
   - type: Authentication
     url: authentication/icon-aircraft-authentication.yml
-- aid: icon-aircraft:icon-aircraft-catalog-api
-  name: ICON Aircraft Catalog API
-  description: Products and product variants.
-  humanURL: https://www.iconaircraft.com/wp-json/
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: ucp
+- aid: icon-aircraft:iconaircraft-com-website-wordpress-rest
+  name: ICON Aircraft Website (WordPress REST)
+  description: >-
+    The public WordPress REST API (wp-json) of the ICON Aircraft website at www.iconaircraft.com: the
+    route index of the site's content management system, catalogued as one site surface rather than as
+    separate APIs.
   baseURL: https://www.iconaircraft.com/wp-json
   tags:
-  - Catalog
+  - WordPress
+  x-surface: platform-generated
   properties:
-  - type: OpenAPI
-    url: openapi/icon-aircraft-catalog-api-openapi.yml
-  - type: Authentication
-    url: authentication/icon-aircraft-authentication.yml
-  - type: ErrorCatalog
-    url: errors/icon-aircraft-problem-types.yml
-  - type: Conventions
-    url: conventions/icon-aircraft-conventions.yml
-  - type: DataModel
-    url: data-model/icon-aircraft-data-model.yml
-  - type: Conformance
-    url: conformance/icon-aircraft-conformance.yml
-  - type: Lifecycle
-    url: lifecycle/icon-aircraft-lifecycle.yml
-  - type: RateLimits
-    url: rate-limits/icon-aircraft-rate-limits.yml
-- aid: icon-aircraft:icon-aircraft-collections-api
-  name: ICON Aircraft Collections API
-  description: Merchandising collections.
-  humanURL: https://www.iconaircraft.com/wp-json/
-  baseURL: https://www.iconaircraft.com/wp-json
-  tags:
-  - Collection
-  tags_raw:
-  - Collections
-  properties:
-  - type: OpenAPI
-    url: openapi/icon-aircraft-collections-api-openapi.yml
-  - type: Authentication
-    url: authentication/icon-aircraft-authentication.yml
-  - type: ErrorCatalog
-    url: errors/icon-aircraft-problem-types.yml
-  - type: Conventions
-    url: conventions/icon-aircraft-conventions.yml
-  - type: DataModel
-    url: data-model/icon-aircraft-data-model.yml
-  - type: Conformance
-    url: conformance/icon-aircraft-conformance.yml
-  - type: Lifecycle
-    url: lifecycle/icon-aircraft-lifecycle.yml
-  - type: RateLimits
-    url: rate-limits/icon-aircraft-rate-limits.yml
-- aid: icon-aircraft:icon-aircraft-discovery-api
-  name: ICON Aircraft Discovery API
-  description: Self-describing metadata about the content types this site exposes.
-  humanURL: https://www.iconaircraft.com/wp-json/
-  baseURL: https://www.iconaircraft.com/wp-json
-  tags:
-  - Discovery
-  properties:
-  - type: OpenAPI
-    url: openapi/icon-aircraft-discovery-api-openapi.yml
-  - type: Authentication
-    url: authentication/icon-aircraft-authentication.yml
-  - type: ErrorCatalog
-    url: errors/icon-aircraft-problem-types.yml
-  - type: Conventions
-    url: conventions/icon-aircraft-conventions.yml
-  - type: DataModel
-    url: data-model/icon-aircraft-data-model.yml
-  - type: Conformance
-    url: conformance/icon-aircraft-conformance.yml
-  - type: Lifecycle
-    url: lifecycle/icon-aircraft-lifecycle.yml
-  - type: RateLimits
-    url: rate-limits/icon-aircraft-rate-limits.yml
-- aid: icon-aircraft:icon-aircraft-media-api
-  name: ICON Aircraft Media API
-  description: The site media library — photography, video posters and documents.
-  humanURL: https://www.iconaircraft.com/wp-json/
-  baseURL: https://www.iconaircraft.com/wp-json
-  tags:
-  - Media
-  properties:
-  - type: OpenAPI
-    url: openapi/icon-aircraft-media-api-openapi.yml
-  - type: Authentication
-    url: authentication/icon-aircraft-authentication.yml
-  - type: ErrorCatalog
-    url: errors/icon-aircraft-problem-types.yml
-  - type: Conventions
-    url: conventions/icon-aircraft-conventions.yml
-  - type: DataModel
-    url: data-model/icon-aircraft-data-model.yml
-  - type: Conformance
-    url: conformance/icon-aircraft-conformance.yml
-  - type: Lifecycle
-    url: lifecycle/icon-aircraft-lifecycle.yml
-  - type: RateLimits
-    url: rate-limits/icon-aircraft-rate-limits.yml
-- aid: icon-aircraft:icon-aircraft-pages-api
-  name: ICON Aircraft Pages API
-  description: Marketing, product, policy and landing pages.
-  humanURL: https://www.iconaircraft.com/wp-json/
-  baseURL: https://www.iconaircraft.com/wp-json
-  tags:
-  - Pages
-  properties:
-  - type: OpenAPI
-    url: openapi/icon-aircraft-pages-api-openapi.yml
-  - type: Authentication
-    url: authentication/icon-aircraft-authentication.yml
-  - type: ErrorCatalog
-    url: errors/icon-aircraft-problem-types.yml
-  - type: Conventions
-    url: conventions/icon-aircraft-conventions.yml
-  - type: DataModel
-    url: data-model/icon-aircraft-data-model.yml
-  - type: Conformance
-    url: conformance/icon-aircraft-conformance.yml
-  - type: Lifecycle
-    url: lifecycle/icon-aircraft-lifecycle.yml
-  - type: RateLimits
-    url: rate-limits/icon-aircraft-rate-limits.yml
-- aid: icon-aircraft:icon-aircraft-posts-api
-  name: ICON Aircraft Posts API
-  description: ICON Aircraft news and press releases.
-  humanURL: https://www.iconaircraft.com/wp-json/
-  baseURL: https://www.iconaircraft.com/wp-json
-  tags:
-  - Posts
-  properties:
-  - type: OpenAPI
-    url: openapi/icon-aircraft-posts-api-openapi.yml
-  - type: Authentication
-    url: authentication/icon-aircraft-authentication.yml
-  - type: ErrorCatalog
-    url: errors/icon-aircraft-problem-types.yml
-  - type: Conventions
-    url: conventions/icon-aircraft-conventions.yml
-  - type: DataModel
-    url: data-model/icon-aircraft-data-model.yml
-  - type: Conformance
-    url: conformance/icon-aircraft-conformance.yml
-  - type: Lifecycle
-    url: lifecycle/icon-aircraft-lifecycle.yml
-  - type: RateLimits
-    url: rate-limits/icon-aircraft-rate-limits.yml
+  - type: Documentation
+    url: https://www.iconaircraft.com/wp-json
+  x-platform: wordpress
+  x-platform-surface: rest
 - aid: icon-aircraft:icon-aircraft-search-api
   name: ICON Aircraft Search API
   description: Cross-type site search.
-  humanURL: https://www.iconaircraft.com/wp-json/
-  baseURL: https://www.iconaircraft.com/wp-json
+  humanURL: https://store.iconaircraft.com/agents.md
+  baseURL: https://store.iconaircraft.com
   tags:
   - Search
   properties:
@@ -306,33 +181,22 @@ apis:
     url: lifecycle/icon-aircraft-lifecycle.yml
   - type: RateLimits
     url: rate-limits/icon-aircraft-rate-limits.yml
-- aid: icon-aircraft:icon-aircraft-taxonomy-api
-  name: ICON Aircraft Taxonomy API
-  description: Categories and tags applied to posts.
-  humanURL: https://www.iconaircraft.com/wp-json/
-  baseURL: https://www.iconaircraft.com/wp-json
+- aid: icon-aircraft:store-iconaircraft-com-shopify-storefront-json
+  name: ICON Aircraft Storefront JSON (Shopify)
+  description: >-
+    The Shopify Storefront JSON surface that Shopify generates for every Shopify site or store, served
+    on store.iconaircraft.com. Catalogued as one platform-generated record, not as separate APIs: nobody
+    at ICON Aircraft designed it.
+  baseURL: https://store.iconaircraft.com
   tags:
-  - Taxonomy
+  - Shopify
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: storefront-json
   properties:
-  - type: OpenAPI
-    url: openapi/icon-aircraft-taxonomy-api-openapi.yml
-  - type: Authentication
-    url: authentication/icon-aircraft-authentication.yml
-  - type: ErrorCatalog
-    url: errors/icon-aircraft-problem-types.yml
-  - type: Conventions
-    url: conventions/icon-aircraft-conventions.yml
-  - type: DataModel
-    url: data-model/icon-aircraft-data-model.yml
-  - type: Conformance
-    url: conformance/icon-aircraft-conformance.yml
-  - type: Lifecycle
-    url: lifecycle/icon-aircraft-lifecycle.yml
-  - type: RateLimits
-    url: rate-limits/icon-aircraft-rate-limits.yml
+  - type: Documentation
+    url: https://store.iconaircraft.com
 common:
-- type: Overlay
-  url: overlays/icon-aircraft-content-api-overlay.yaml
 - type: Website
   url: https://www.iconaircraft.com/
 - type: Documentation
@@ -383,6 +247,8 @@ common:
   url: rate-limits/icon-aircraft-rate-limits.yml
 - type: DomainSecurity
   url: security/icon-aircraft-domain-security.yml
+- type: OpenAPI
+  url: openapi/icon-aircraft-search-api-openapi.yml
 x-enrichment:
   date: '2026-08-22'
   status: enriched

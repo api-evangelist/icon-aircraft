@@ -15,6 +15,9 @@ tags:
   description: Cross-type site search.
 paths:
   /wp/v2/search:
+    servers:
+    - url: https://www.iconaircraft.com/wp-json
+      description: Production WordPress REST API (Pantheon origin, Fastly edge)
     get:
       operationId: searchContent
       summary: Search across content types
@@ -62,9 +65,6 @@ paths:
                   $ref: '#/components/schemas/SearchResult'
         '400':
           $ref: '#/components/responses/InvalidParam'
-    servers:
-    - url: https://www.iconaircraft.com/wp-json
-      description: Production WordPress REST API (Pantheon origin, Fastly edge)
   /search/suggest.json:
     servers:
     - url: https://store.iconaircraft.com
@@ -105,55 +105,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuggestResults'
 components:
-  schemas:
-    SearchResult:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        url:
-          type: string
-          format: uri
-        type:
-          type: string
-        subtype:
-          type: string
-        _links:
-          type: object
-          additionalProperties: true
-    Error:
-      type: object
-      description: The WordPress REST error envelope. Not RFC 9457 — the media type is application/json and the machine-readable code lives in `code`, not `type`.
-      properties:
-        code:
-          type: string
-          examples:
-          - rest_post_invalid_id
-          - rest_invalid_param
-          - rest_forbidden
-        message:
-          type: string
-        data:
-          type: object
-          properties:
-            status:
-              type: integer
-          additionalProperties: true
-    SuggestResults:
-      type: object
-      properties:
-        resources:
-          type: object
-          properties:
-            results:
-              type: object
-              additionalProperties:
-                type: array
-                items:
-                  type: object
-                  additionalProperties: true
+  responses:
+    InvalidParam:
+      description: One or more query parameters failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   parameters:
     perPage:
       name: per_page
@@ -172,22 +130,64 @@ components:
         type: integer
         minimum: 1
         default: 1
-  responses:
-    InvalidParam:
-      description: One or more query parameters failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   headers:
-    XWPTotal:
-      description: Total number of items in the collection matching the query.
-      schema:
-        type: integer
     XWPTotalPages:
       description: Total number of pages available for the query.
       schema:
         type: integer
+    XWPTotal:
+      description: Total number of items in the collection matching the query.
+      schema:
+        type: integer
+  schemas:
+    SuggestResults:
+      type: object
+      properties:
+        resources:
+          type: object
+          properties:
+            results:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+    Error:
+      type: object
+      description: The WordPress REST error envelope. Not RFC 9457 — the media type is application/json and the machine-readable code lives in `code`, not `type`.
+      properties:
+        code:
+          type: string
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_forbidden
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            status:
+              type: integer
+          additionalProperties: true
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+        type:
+          type: string
+        subtype:
+          type: string
+        _links:
+          type: object
+          additionalProperties: true
 x-refined-from:
 - icon-aircraft-content-api-openapi.yml
 - icon-aircraft-search-api-openapi.yml
