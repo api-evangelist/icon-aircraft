@@ -23,7 +23,7 @@
   "notes": [
     "icon-aircraft-content-api-openapi.yml: WordPress site /wp-json spec, not split (roadmap#484)",
     "sourced from openapi/_original/ (0 archived document(s)); previously refined output at the top level was skipped rather than re-split",
-    "apis.yml register: written (+2 apis, 5 total)"
+    "apis.yml register: already-registered"
   ],
   "skipped": []
 }
