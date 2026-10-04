@@ -106,6 +106,19 @@ paths:
                 $ref: '#/components/schemas/SuggestResults'
 components:
   schemas:
+    SuggestResults:
+      type: object
+      properties:
+        resources:
+          type: object
+          properties:
+            results:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
     SearchResult:
       type: object
       properties:
@@ -141,29 +154,22 @@ components:
             status:
               type: integer
           additionalProperties: true
-    SuggestResults:
-      type: object
-      properties:
-        resources:
-          type: object
-          properties:
-            results:
-              type: object
-              additionalProperties:
-                type: array
-                items:
-                  type: object
-                  additionalProperties: true
-  headers:
-    XWPTotal:
-      description: Total number of items in the collection matching the query.
-      schema:
-        type: integer
-    XWPTotalPages:
-      description: Total number of pages available for the query.
-      schema:
-        type: integer
+  responses:
+    InvalidParam:
+      description: One or more query parameters failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   parameters:
+    page:
+      name: page
+      in: query
+      description: 1-indexed page of the collection to return.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
     perPage:
       name: per_page
       in: query
@@ -173,21 +179,15 @@ components:
         minimum: 1
         maximum: 100
         default: 10
-    page:
-      name: page
-      in: query
-      description: 1-indexed page of the collection to return.
+  headers:
+    XWPTotal:
+      description: Total number of items in the collection matching the query.
       schema:
         type: integer
-        minimum: 1
-        default: 1
-  responses:
-    InvalidParam:
-      description: One or more query parameters failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+    XWPTotalPages:
+      description: Total number of pages available for the query.
+      schema:
+        type: integer
 x-refined-from:
 - icon-aircraft-content-api-openapi.yml
 - icon-aircraft-search-api-openapi.yml

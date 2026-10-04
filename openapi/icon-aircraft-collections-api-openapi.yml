@@ -110,17 +110,25 @@ components:
           oneOf:
           - $ref: '#/components/schemas/Image'
           - type: 'null'
-    Option:
+    Collection:
       type: object
       properties:
-        name:
-          type: string
-        position:
+        id:
           type: integer
-        values:
-          type: array
-          items:
-            type: string
+        title:
+          type: string
+        handle:
+          type: string
+        description:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        products_count:
+          type: integer
     Image:
       type: object
       properties:
@@ -145,6 +153,17 @@ components:
           type: array
           items:
             type: integer
+    Option:
+      type: object
+      properties:
+        name:
+          type: string
+        position:
+          type: integer
+        values:
+          type: array
+          items:
+            type: string
     Product:
       type: object
       properties:
@@ -185,35 +204,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Option'
-    Collection:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        handle:
-          type: string
-        description:
-          type: string
-        published_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        products_count:
-          type: integer
+  responses:
+    NotFound:
+      description: No published object exists at that handle.
+      content:
+        text/html:
+          schema:
+            type: string
   parameters:
-    limit:
-      name: limit
-      in: query
-      description: Items per page. Shopify caps this at 250.
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 250
-        default: 30
     page:
       name: page
       in: query
@@ -229,10 +227,12 @@ components:
       description: The storefront handle (URL slug) of the object.
       schema:
         type: string
-  responses:
-    NotFound:
-      description: No published object exists at that handle.
-      content:
-        text/html:
-          schema:
-            type: string
+    limit:
+      name: limit
+      in: query
+      description: Items per page. Shopify caps this at 250.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 250
+        default: 30

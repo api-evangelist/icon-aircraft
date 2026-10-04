@@ -121,17 +121,31 @@ components:
           oneOf:
           - $ref: '#/components/schemas/Image'
           - type: 'null'
-    Option:
+    Cart:
       type: object
       properties:
-        name:
+        token:
           type: string
-        position:
+        note:
+          type:
+          - string
+          - 'null'
+        attributes:
+          type: object
+          additionalProperties: true
+        original_total_price:
           type: integer
-        values:
+        total_price:
+          type: integer
+        item_count:
+          type: integer
+        currency:
+          type: string
+        items:
           type: array
           items:
-            type: string
+            type: object
+            additionalProperties: true
     Image:
       type: object
       properties:
@@ -156,6 +170,17 @@ components:
           type: array
           items:
             type: integer
+    Option:
+      type: object
+      properties:
+        name:
+          type: string
+        position:
+          type: integer
+        values:
+          type: array
+          items:
+            type: string
     Product:
       type: object
       properties:
@@ -196,32 +221,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Option'
-    Cart:
-      type: object
-      properties:
-        token:
-          type: string
-        note:
-          type:
-          - string
-          - 'null'
-        attributes:
-          type: object
-          additionalProperties: true
-        original_total_price:
-          type: integer
-        total_price:
-          type: integer
-        item_count:
-          type: integer
-        currency:
-          type: string
-        items:
-          type: array
-          items:
-            type: object
-            additionalProperties: true
+  responses:
+    NotFound:
+      description: No published object exists at that handle.
+      content:
+        text/html:
+          schema:
+            type: string
   parameters:
+    page:
+      name: page
+      in: query
+      description: 1-indexed page of the collection.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    handle:
+      name: handle
+      in: path
+      required: true
+      description: The storefront handle (URL slug) of the object.
+      schema:
+        type: string
     limit:
       name: limit
       in: query
@@ -231,25 +253,3 @@ components:
         minimum: 1
         maximum: 250
         default: 30
-    handle:
-      name: handle
-      in: path
-      required: true
-      description: The storefront handle (URL slug) of the object.
-      schema:
-        type: string
-    page:
-      name: page
-      in: query
-      description: 1-indexed page of the collection.
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-  responses:
-    NotFound:
-      description: No published object exists at that handle.
-      content:
-        text/html:
-          schema:
-            type: string
