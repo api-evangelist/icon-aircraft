@@ -1,0 +1,16 @@
+generated: '2026-10-12'
+method: none
+source:
+- https://zapier.com/apps/icon-aircraft/integrations
+- https://n8n.io/integrations/icon-aircraft/
+- https://composio.dev/toolkits/icon-aircraft
+- https://monid.ai/tools/icon-aircraft
+checked:
+- https://composio.dev/toolkits/icon-aircraft
+- https://monid.ai/tools/icon-aircraft
+- https://n8n.io/integrations/icon-aircraft/
+- https://zapier.com/apps/icon-aircraft/integrations
+summary: null
+marketplace_apps: []
+edges: []
+templates: []
