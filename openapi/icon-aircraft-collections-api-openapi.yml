@@ -204,29 +204,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Option'
-  responses:
-    NotFound:
-      description: No published object exists at that handle.
-      content:
-        text/html:
-          schema:
-            type: string
   parameters:
-    page:
-      name: page
-      in: query
-      description: 1-indexed page of the collection.
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-    handle:
-      name: handle
-      in: path
-      required: true
-      description: The storefront handle (URL slug) of the object.
-      schema:
-        type: string
     limit:
       name: limit
       in: query
@@ -236,3 +214,25 @@ components:
         minimum: 1
         maximum: 250
         default: 30
+    handle:
+      name: handle
+      in: path
+      required: true
+      description: The storefront handle (URL slug) of the object.
+      schema:
+        type: string
+    page:
+      name: page
+      in: query
+      description: 1-indexed page of the collection.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+  responses:
+    NotFound:
+      description: No published object exists at that handle.
+      content:
+        text/html:
+          schema:
+            type: string
